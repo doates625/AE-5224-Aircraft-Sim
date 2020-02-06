@@ -91,12 +91,12 @@ classdef Sim < handle
             % Position and attitude
             p_e_dot = v_e_;
             q_e_dot = Quat(q_e_) * Quat([0; 0.5*w_b_]);
+            q_e_dot = q_e_dot.vector();
             
             % Linear velocity
             q_e_ = Quat(q_e_);
             F_e = q_e_.rotate(F_b);
             v_e_dot = F_e / obj.body.m;
-            q_e_dot = q_e_dot.vector();
             
             % Angular velocity
             L_b = obj.body.I_b * w_b_;
