@@ -1,0 +1,6 @@
+[submodule "lib/+quat"]
+	path = lib/+quat
+	url = https://github.com/doates625/quat_m.git
+[submodule "lib/+runge_kutta"]
+	path = lib/+runge_kutta
+	url = https://github.com/doates625/runge_kutta_m
