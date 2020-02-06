@@ -4,3 +4,6 @@
 [submodule "lib/+runge_kutta"]
 	path = lib/+runge_kutta
 	url = https://github.com/doates625/runge_kutta_m
+[submodule "lib/+live_plot"]
+	path = lib/+live_plot
+	url = https://github.com/doates625/live_plot_m.git
