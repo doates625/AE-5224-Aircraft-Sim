@@ -7,6 +7,7 @@ classdef Sim < handle
     
     properties (SetAccess = protected)
         body;   % Rigid body model [AE5224.rigid_body.Body]
+        t;      % Current time [s]
         p_e;    % Position [Earth, m]
         q_e;    % Attitude [Earth, quaternion]
         v_e;    % Linear velocity [Earth, m]
@@ -37,11 +38,12 @@ classdef Sim < handle
             
             % Construction
             obj.body = body;
-            obj.del_t = del_t;
+            obj.t = 0;
             obj.p_e = p_e;
             obj.q_e = q_e;
             obj.v_e = v_e;
             obj.w_b = w_b;
+            obj.del_t = del_t;
         end
         
         function update(obj, F_b, M_b)
@@ -56,13 +58,14 @@ classdef Sim < handle
             import('runge_kutta.rk4');
             
             % RK4 integration
-            s = obj.pack(obj.p_e, obj.q_e, obj.v_e, obj.w_b);
-            ds_dt = @(s, t) obj.derivative(s, F_b, M_b);
-            s = rk4(ds_dt, s, 0, obj.del_t);
-            [obj.p_e, obj.q_e, obj.v_e, obj.w_b] = obj.unpack(s);
+            s0 = obj.pack(obj.p_e, obj.q_e, obj.v_e, obj.w_b);
+            ds_dt = @(t, s) obj.derivative(s, F_b, M_b);
+            s1 = rk4(ds_dt, 0, s0, obj.del_t);
+            [obj.p_e, obj.q_e, obj.v_e, obj.w_b] = obj.unpack(s1);
+            obj.t = obj.t + obj.del_t;
             
             % Quaternion normalization
-            obj.p_e = obj.p_e / norm(obj.p_e);
+            obj.q_e = obj.q_e / norm(obj.q_e);
         end
     end
     
