@@ -4,19 +4,22 @@ classdef Sim < AE5224.rigid_body.Sim
     %   Author: Dan Oates (WPI Class of 2020)
     
     methods (Access = public)
-        function update(obj, wp)
+        function update(obj, w1, w2, w3, w4)
             %UPDATE(obj, wp)
             %   Run one simulation loop
             %   
             %   Inputs:
-            %   - wp = Prop angular velocities [rpm, size = [4, 1]]
+            %   - w1 = Prop 1 rate [rpm]
+            %   - w2 = Prop 2 rate [rpm]
+            %   - w3 = Prop 3 rate [rpm]
+            %   - w4 = Prop 4 rate [rpm]
             
             % Imports
             import('AE5224.get_g');
             import('quat.Quat');
             
             % Convert to forces and moments
-            wp2 = wp.^2;
+            wp2 = [w1; w2; w3; w4].^2;
             F_wp = obj.body.k_F * wp2;
             M_wp = obj.body.k_M * wp2;
             
