@@ -32,7 +32,7 @@ q_e = [1; 0; 0; 0];
 v_e = [0; 0; 0];
 w_b = [0; 0; 0];
 
-% Trim controls (TODO)
+% Trim controls
 body = Body();
 Fg = body.m * get_g();
 w = sqrt(Fg / (4 * body.k_F));
