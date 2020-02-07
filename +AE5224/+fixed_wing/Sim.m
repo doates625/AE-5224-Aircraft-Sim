@@ -34,11 +34,11 @@ classdef Sim < AE5224.rigid_body.Sim
             F_g = Reb * [0; 0; F_gz];
             
             % Longitudinal AFMs
-            F_aer = 0.5 * p * V^2 * obj.body.S_wn;
-            M_lon = F_aer * obj.body.c_wn;
+            F_air = 0.5 * p * V^2 * obj.body.S_wn;
+            M_lon = F_air * obj.body.c_wn;
             C_c = obj.body.c_wn / (2 * V);
-            Fl = F_aer * obj.get_C_Fl(al, wy, de, C_c);
-            Fd = F_aer * obj.get_C_Fd(al, wy, de, C_c);
+            Fl = F_air * obj.get_C_Fl(al, wy, de, C_c);
+            Fd = F_air * obj.get_C_Fd(al, wy, de, C_c);
             c_al = cos(al);
             s_al = sin(al);
             F_ax = +Fl*s_al - Fd*c_al;
@@ -46,9 +46,9 @@ classdef Sim < AE5224.rigid_body.Sim
             M_ay = M_lon * obj.get_C_My(al, wy, de, C_c);
             
             % Lateral AFMs
-            M_lat = F_aer * obj.body.b_wn;
+            M_lat = F_air * obj.body.b_wn;
             C_b = obj.body.b_wn / (2 * V);
-            F_ay = F_aer * obj.get_C_Fy(be, wx, wz, da, dr, C_b);
+            F_ay = F_air * obj.get_C_Fy(be, wx, wz, da, dr, C_b);
             M_ax = M_lat * obj.get_C_Mx(be, wx, wz, da, dr, C_b);
             M_az = M_lat * obj.get_C_Mz(be, wx, wz, da, dr, C_b);
             
