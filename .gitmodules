@@ -7,3 +7,6 @@
 [submodule "lib/+live_plot"]
 	path = lib/+live_plot
 	url = https://github.com/doates625/live_plot_m.git
+[submodule "lib/+timing"]
+	path = lib/+timing
+	url = https://github.com/doates625/timing_m.git

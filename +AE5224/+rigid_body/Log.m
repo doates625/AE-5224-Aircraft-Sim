@@ -126,14 +126,14 @@ classdef Log < handle
             n = length(obj.t);
             del_n = ceil(1 / obj.sim.del_t);
             for i = 1 : del_n : n
-                vec_len = 1.5;
+                vec_len = 0.02 * max(range(obj.p_e, 2));
                 frame = Frame3D(vec_len);
                 frame.plot_x.plot_.Color = 'r';
                 frame.plot_y.plot_.Color = 'g';
                 frame.plot_z.plot_.Color = 'b';
-                frame.plot_x.plot_.LineWidth = 1;
-                frame.plot_y.plot_.LineWidth = 1;
-                frame.plot_z.plot_.LineWidth = 1;
+                frame.plot_x.plot_.LineWidth = 2;
+                frame.plot_y.plot_.LineWidth = 2;
+                frame.plot_z.plot_.LineWidth = 2;
                 R = Quat(obj.q_e(:, i)).mat_rot();
                 p = obj.p_e(:, i);
                 frame.update(R, p);

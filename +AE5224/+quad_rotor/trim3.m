@@ -59,17 +59,17 @@ mat = [...
     [0, +Lk_F, 0, -Lk_F]; ...
     [-Lk_F, 0, +Lk_F, 0]; ...
     [+k_M, -k_M, +k_M, -k_M]];
-wp2 = mat \ [F_p; M_b];
-w1 = sqrt(wp2(1));
-w2 = sqrt(wp2(2));
-w3 = sqrt(wp2(3));
-w4 = sqrt(wp2(4));
+w_p2 = mat \ [F_p; M_b];
+w_1 = sqrt(w_p2(1));
+w_2 = sqrt(w_p2(2));
+w_3 = sqrt(w_p2(3));
+w_4 = sqrt(w_p2(4));
 
 % Simulation
 sim = Sim(body, del_t, p_e, q_e, v_e, w_b);
 log = Log(sim);
 while sim.t < t_max
-    sim.update(w1, w2, w3, w4);
+    sim.update(w_1, w_2, w_3, w_4);
     log.update();
 end
 log.plot();

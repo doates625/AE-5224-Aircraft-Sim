@@ -36,16 +36,16 @@ w_b = [0; 0; 0];
 body = Body();
 Fg = body.m * get_g();
 w = sqrt(Fg / (4 * body.k_F));
-w1 = w; % Prop 1 [rpm]
-w2 = w; % Prop 2 [rpm]
-w3 = w; % Prop 3 [rpm]
-w4 = w; % Prop 4 [rpm]
+w_1 = w;    % Prop 1 [rpm]
+w_2 = w;    % Prop 2 [rpm]
+w_3 = w;    % Prop 3 [rpm]
+w_4 = w;    % Prop 4 [rpm]
 
 % Simulation
 sim = Sim(body, del_t, p_e, q_e, v_e, w_b);
 log = Log(sim);
 while sim.t < t_max
-    sim.update(w1, w2, w3, w4);
+    sim.update(w_1, w_2, w_3, w_4);
     log.update();
 end
 log.plot();
