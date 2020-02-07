@@ -2,7 +2,7 @@ function log = trim1(t_max, del_t)
 %log = TRIM1(t_max, del_t) Run trim 1 simulation test
 %   
 %   Inputs:
-%   - t_max = Sim duration [s, def = 60.0]
+%   - t_max = Sim duration [s, def = 10.0]
 %   - del_t = Sim time delta [s, def = 0.01]
 %   
 %   Outputs:
