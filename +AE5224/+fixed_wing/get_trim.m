@@ -25,16 +25,11 @@ function [p_e, q_e, v_e, w_b, d_e, d_a, d_r, d_p] = ...
 import('AE5224.get_g');
 import('quat.Quat');
 
-% Trim initial conditions
-p_e = [0; 0; -h];
-v_ex = V*cos(gam);
-v_ey = 0;
-v_ez = -V*sin(gam);
-v_e = [v_ex; v_ey; v_ez];
-w_ex = 0;
-w_ey = 0;
-w_ez =  V*cos(gam)/R;
-w_e = [w_ex; w_ey; w_ez];
+% General trim solver
+[p_e, v_e, w_e, F_c] = AE5224.rigid_body.get_trim(body, V, R, gam, h);
+w_ex = w_e(1);
+w_ey = w_e(2);
+w_ez = w_e(3);
 
 % Symbolic unknowns
 q_ew = sym('q_ew'); % Attitude w [quat]
@@ -136,7 +131,6 @@ M_p = [M_px; 0; 0];
 M_b = M_a + M_p;
 
 % Solve equations
-F_c = body.m * v_e(1)^2 / R;
 L_b = body.I_b * w_b;
 eqs = [
     F_b == R_eb * [0; F_c; 0];  % Net force
