@@ -1,20 +1,13 @@
-function [p_e, q_e, v_e, w_b, d_e, d_a, d_r, d_p] = ...
-    get_trim(body, V, R, gam, h, p)
-%[p_e, q_e, v_e, w_b, d_e, d_a, d_r, d_p] = GET_TRIM(body, V, R, gam, h, p)
+function [q_e, w_b, d_e, d_a, d_r, d_p] = get_trim(body, trim)
+%[q_e, w_b, d_e, d_a, d_r, d_p] = GET_TRIM(body, trim)
 %   Get trim conditions for fixed-wing aircraft
 %   
 %   Inputs:
 %   - body = Fixed-wing model [AE5224.fixed_wing.Body]
-%   - V = Trim airspeed [m/s]
-%   - R = Trim turn radius [m]
-%   - gam = Trim climb angle [rad]
-%   - h = Trim altitude [m]
-%   - p = Air density [kg/m^3]
+%   - trim = Trim conditions [AE5224.Trim]
 %   
 %   Outputs:
-%   - p_e = Init Earth position [m]
 %   - q_e = Init Earth pose [quaternion]
-%   - v_e = Init Earth velocity [m/s]
 %   - w_b = Init Body angle rate [rad/s]
 %   - d_e = Trim elevator angle [rad]
 %   - d_a = Trim aileron angle [rad]
@@ -23,13 +16,21 @@ function [p_e, q_e, v_e, w_b, d_e, d_a, d_r, d_p] = ...
 
 % Imports
 import('AE5224.get_g');
+import('AE5224.get_p');
 import('quat.Quat');
 
-% General trim solver
-[p_e, v_e, w_e, F_c] = AE5224.rigid_body.get_trim(body, V, R, gam, h);
+% Constants
+g = get_g();
+p = get_p();
+
+% Unpack trim
+V = trim.V;
+v_e = trim.v_e;
+w_e = trim.w_e;
 w_ex = w_e(1);
 w_ey = w_e(2);
 w_ez = w_e(3);
+F_c = trim.get_F_c(body.m);
 
 % Symbolic unknowns
 q_ew = sym('q_ew'); % Attitude w [quat]
@@ -58,7 +59,7 @@ al = atan(v_az / v_ax);
 be = asin(v_ay / V);
 
 % Gravitational forces
-F_gz = body.m * get_g();
+F_gz = body.m * g;
 F_g = R_eb * [0; 0; F_gz];
 
 % Longitudinal AFMs

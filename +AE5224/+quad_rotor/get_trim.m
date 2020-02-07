@@ -1,19 +1,13 @@
-function [p_e, q_e, v_e, w_b, w_1, w_2, w_3, w_4] = ...
-    get_trim(body, V, R, gam, h)
-%[p_e, q_e, v_e, w_b, w_1, w_2, w_3, w_4] = GET_TRIM(body, V, R, gam, h)
+function [q_e, w_b, w_1, w_2, w_3, w_4] = get_trim(body, trim)
+%[q_e, w_b, w_1, w_2, w_3, w_4] = GET_TRIM(body, trim)
 %   Get trim conditions for quadrotor aircraft
 %   
 %   Inputs:
 %   - body = Quadrotor model [AE5224.quad_rotor.Body]
-%   - V = Trim airspeed [m/s]
-%   - R = Trim turn radius [m]
-%   - gam = Trim climb angle [rad]
-%   - h = Trim altitude [m]
+%   - trim = Trim conditions [AE5224.Trim]
 %   
 %   Outputs:
-%   - p_e = Init Earth position [m]
 %   - q_e = Init Earth pose [quaternion]
-%   - v_e = Init Earth velocity [m/s]
 %   - w_b = Init Body angle rate [rad/s]
 %   - w_1 = Prop 1 rate [rpm]
 %   - w_2 = Prop 2 rate [rpm]
@@ -24,8 +18,9 @@ function [p_e, q_e, v_e, w_b, w_1, w_2, w_3, w_4] = ...
 import('AE5224.get_g');
 import('quat.Quat');
 
-% General trim solver
-[p_e, v_e, w_e, F_c] = AE5224.rigid_body.get_trim(body, V, R, gam, h);
+% Unpack trim
+w_e = trim.w_e;
+F_c = trim.get_F_c(body.m);
 
 % Trim states
 F_g = body.m*get_g();   % Gravity [N]

@@ -3,27 +3,7 @@ classdef Sim < AE5224.rigid_body.Sim
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
-    properties (SetAccess = protected)
-        p;  % Air density  [kg/m^3]
-    end
-    
     methods (Access = public)
-        function obj = Sim(body, del_t, p_e, q_e, v_e, w_b, p)
-            %obj = SIM(body, del_t, p_e, q_e, v_e, w_b, p)
-            %   Construct fixed-wing simulator
-            %   
-            %   Inputs:
-            %   - body = Rigid body model [AE5224.rigid_body.Body]
-            %   - del_t = Simulation time delta [s]
-            %   - p_e = Position [Earth, m]
-            %   - q_e = Attitude [Earth, quaternion]
-            %   - v_e = Linear velocity [Earth, m]
-            %   - w_b = Angular velocity [Body, rad/s]
-            %   - p = Air density [kg/m^3]
-            obj@AE5224.rigid_body.Sim(body, del_t, p_e, q_e, v_e, w_b);
-            obj.p = p;
-        end
-        
         function update(obj, d_e, d_a, d_r, d_p)
             %UPDATE(obj, d_e, d_a, d_r, d_p)
             %   Run one simulation loop
@@ -36,7 +16,12 @@ classdef Sim < AE5224.rigid_body.Sim
             
             % Imports
             import('AE5224.get_g');
+            import('AE5224.get_p');
             import('quat.Quat');
+            
+            % Constants
+            g = get_g();
+            p = get_p();
             
             % Air-speed transform
             Reb = Quat(obj.q_e).inv().mat_rot();
@@ -48,11 +33,11 @@ classdef Sim < AE5224.rigid_body.Sim
             w_bz = obj.w_b(3);
             
             % Gravitational forces
-            F_gz = obj.body.m * get_g();
+            F_gz = obj.body.m * g;
             F_g = Reb * [0; 0; F_gz];
             
             % Longitudinal AFMs
-            F_air = 0.5 * obj.p * V^2 * obj.body.S_wn;
+            F_air = 0.5 * p * V^2 * obj.body.S_wn;
             M_lon = F_air * obj.body.c_wn;
             C_c = obj.body.c_wn / (2 * V);
             Fl = F_air * obj.get_C_Fl(al, w_by, d_e, C_c);
@@ -73,7 +58,7 @@ classdef Sim < AE5224.rigid_body.Sim
             % Prop FMs
             S_pr = obj.body.S_pr;
             C_pr = obj.body.C_pr;
-            F_px = 0.5 * obj.p * S_pr * C_pr * ((obj.body.k_v * d_p)^2 - V^2);
+            F_px = 0.5 * p * S_pr * C_pr * ((obj.body.k_v * d_p)^2 - V^2);
             M_px = -obj.body.k_t * (obj.body.k_w * d_p)^2;
             
             % Sum forces and moments

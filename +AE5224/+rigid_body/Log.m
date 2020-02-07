@@ -126,7 +126,7 @@ classdef Log < handle
             n = length(obj.t);
             del_n = ceil(1 / obj.sim.del_t);
             for i = 1 : del_n : n
-                vec_len = max(1, 0.02 * min(range(obj.p_e, 2)));
+                vec_len = max(1, 0.02 * max(range(obj.p_e, 2)));
                 frame = Frame3D(vec_len);
                 frame.plot_x.plot_.Color = 'r';
                 frame.plot_y.plot_.Color = 'g';
