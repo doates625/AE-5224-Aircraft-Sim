@@ -29,11 +29,17 @@ classdef Log < handle
         
         function update(obj)
             %UPDATE(obj) Add current sim state to log
+            
+            % Imports
+            import('AE5224.rigid_body.Body.unpack');
+            
+            % Function
+            [p_e_, q_e_, v_e_, w_b_] = unpack(obj.sim.x);
             obj.t = [obj.t, obj.sim.t];
-            obj.p_e = [obj.p_e, obj.sim.p_e];
-            obj.q_e = [obj.q_e, obj.sim.q_e];
-            obj.v_e = [obj.v_e, obj.sim.v_e];
-            obj.w_b = [obj.w_b, obj.sim.w_b];
+            obj.p_e = [obj.p_e, p_e_];
+            obj.q_e = [obj.q_e, q_e_];
+            obj.v_e = [obj.v_e, v_e_];
+            obj.w_b = [obj.w_b, w_b_];
         end
         
         function save(obj, file)

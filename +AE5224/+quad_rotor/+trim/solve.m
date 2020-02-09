@@ -1,5 +1,5 @@
-function [q_e, w_b, u] = get_trim(body, trim)
-%[q_e, w_b, u] = GET_TRIM(body, trim)
+function [x_st, u_st] = solve(body, trim)
+%[x_st, u_st] = GET_TRIM(body, trim)
 %   Get trim conditions for quadrotor aircraft
 %   
 %   Inputs:
@@ -7,11 +7,11 @@ function [q_e, w_b, u] = get_trim(body, trim)
 %   - trim = Trim conditions [AE5224.Trim]
 %   
 %   Outputs:
-%   - q_e = Init Earth pose [quaternion]
-%   - w_b = Init Body angle rate [rad/s]
+%   - x_st = Trim states [p_e; q_e; v_e; w_b]
 %   - u = Trim controls [w_1; w_2; w_3; w_4]
 
 % Imports
+import('AE5224.rigid_body.Body.pack');
 import('AE5224.const.get_g');
 import('quat.Quat');
 
@@ -40,6 +40,9 @@ mat = [...
     [-Lk_F, 0, +Lk_F, 0]; ...
     [+k_M, -k_M, +k_M, -k_M]];
 w_p2 = mat \ [F_p; M_b];
-u = sqrt(w_p2);
+u_st = sqrt(w_p2);
+
+% Pack trim state
+x_st = pack(trim.p_e, q_e, trim.v_e, w_b);
 
 end

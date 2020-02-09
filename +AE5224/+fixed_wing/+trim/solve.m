@@ -1,28 +1,28 @@
-function [q_e, w_b, u] = get_trim(body, trim)
-%[q_e, w_b, u] = GET_TRIM(body, trim)
-%   Get trim conditions for fixed-wing aircraft
+function [x_st, u_st] = solve(body, trim)
+%[x_st, u_st] = SOLVE(body, trim)
+%   Solve trim conditions for fixed-wing aircraft
 %   
 %   Inputs:
 %   - body = Fixed-wing model [AE5224.fixed_wing.Body]
 %   - trim = Trim conditions [AE5224.Trim]
 %   
 %   Outputs:
-%   - q_e = Init Earth pose [quaternion]
-%   - w_b = Init Body angle rate [rad/s]
-%   - u = Trim controls [d_e; d_a; d_r; d_p]
+%   - x_st = Trim states [p_e; q_e; v_e; w_b]
+%   - u_st = Trim controls [d_e; d_a; d_r; d_p]
 
 % Imports
+import('AE5224.rigid_body.Body.pack');
 import('quat.Quat');
 
 % Symbolic unknowns
 q_e = sym('q_e', [4, 1]);
 w_b = sym('w_b', [3, 1]);
-u = sym('u', [4, 1]);
+u_st = sym('u', [4, 1]);
 
 % Symbolic forces and moments
 R_eb = Quat(q_e).conj().mat_rot();
-x = body.pack(trim.p_e, q_e, trim.v_e, w_b);
-[F_b, M_b] = body.forces(x, u);
+x_st = body.pack(trim.p_e, q_e, trim.v_e, w_b);
+[F_b, M_b] = body.forces(x_st, u_st);
 
 % Solve equations
 F_c = trim.get_F_c(body.m);
@@ -37,11 +37,12 @@ eqs = [
 q_e0 = [1; 0; 0; 0];
 w_b0 = trim.w_e;
 u0 = [0; 0; 0; 0.5];
-sol = vpasolve(eqs, [q_e; w_b; u], [q_e0; w_b0; u0]);
+sol = vpasolve(eqs, [q_e; w_b; u_st], [q_e0; w_b0; u0]);
 
 % Numerical evaluations
-q_e = double(sol.q_e);
-w_b = double(sol.w_b);
-u = double(sol.u);
+q_e = double([sol.q_e1; sol.q_e2; sol.q_e3; sol.q_e4]);
+w_b = double([sol.w_b1; sol.w_b2; sol.w_b3]);
+x_st = pack(trim.p_e, q_e, trim.v_e, w_b);
+u_st = double([sol.u1; sol.u2; sol.u3; sol.u4]);
 
 end
