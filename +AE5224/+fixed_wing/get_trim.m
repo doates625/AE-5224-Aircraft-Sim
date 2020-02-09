@@ -12,8 +12,8 @@ function [q_e, w_b, u] = get_trim(body, trim)
 %   - u = Trim controls [d_e; d_a; d_r; d_p]
 
 % Imports
-import('AE5224.get_g');
-import('AE5224.get_p');
+import('AE5224.const.get_g');
+import('AE5224.const.get_p');
 import('quat.Quat');
 
 % Constants
