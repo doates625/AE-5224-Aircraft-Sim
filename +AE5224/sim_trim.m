@@ -1,5 +1,5 @@
 function log = sim_trim(type_, trim, t_max, del_t)
-%log = SIM_TRIM(trim, t_max, del_t)
+%log = SIM_TRIM(type_, trim, t_max, del_t)
 %   Simulate and plot trim condition
 %   
 %   Inputs:
