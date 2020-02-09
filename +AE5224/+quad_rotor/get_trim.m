@@ -12,7 +12,7 @@ function [q_e, w_b, u] = get_trim(body, trim)
 %   - u = Trim controls [w_1; w_2; w_3; w_4]
 
 % Imports
-import('AE5224.get_g');
+import('AE5224.const.get_g');
 import('quat.Quat');
 
 % Unpack trim

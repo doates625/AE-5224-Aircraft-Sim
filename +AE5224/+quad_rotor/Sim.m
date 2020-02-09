@@ -22,7 +22,7 @@ classdef Sim < AE5224.rigid_body.Sim
             %   - dx_dt = State time derivative
             
             % Imports
-            import('AE5224.get_g');
+            import('AE5224.const.get_g');
             import('quat.Quat');
             
             % Unpack state vector
