@@ -28,11 +28,11 @@ x = body.pack(trim.p_e, q_e, trim.v_e, w_b);
 F_c = trim.get_F_c(body.m);
 L_b = body.I_b * w_b;
 eqs = [
-    F_b == R_eb * [0; F_c; 0];
-    M_b == cross(w_b, L_b);
-    w_b == R_eb * trim.w_e;
-    R_eb(2, 1) == 0;
-    norm(q_e) == 1;
+    F_b == R_eb * [0; F_c; 0];  % Net forces
+    M_b == cross(w_b, L_b);     % Net moments
+    w_b == R_eb * trim.w_e;     % Body angle rate
+    R_eb(2, 1) == 0;            % Zero yaw
+    norm(q_e) == 1;             % Unit quaternion
 ];
 q_e0 = [1; 0; 0; 0];
 w_b0 = trim.w_e;
