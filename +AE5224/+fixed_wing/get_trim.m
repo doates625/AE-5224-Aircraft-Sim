@@ -1,5 +1,5 @@
-function [q_e, w_b, d_e, d_a, d_r, d_p] = get_trim(body, trim)
-%[q_e, w_b, d_e, d_a, d_r, d_p] = GET_TRIM(body, trim)
+function [q_e, w_b, u] = get_trim(body, trim)
+%[q_e, w_b, u] = GET_TRIM(body, trim)
 %   Get trim conditions for fixed-wing aircraft
 %   
 %   Inputs:
@@ -9,10 +9,7 @@ function [q_e, w_b, d_e, d_a, d_r, d_p] = get_trim(body, trim)
 %   Outputs:
 %   - q_e = Init Earth pose [quaternion]
 %   - w_b = Init Body angle rate [rad/s]
-%   - d_e = Trim elevator angle [rad]
-%   - d_a = Trim aileron angle [rad]
-%   - d_r = Trim rudder angle [rad]
-%   - d_p = Trim prop throttle [0-1]
+%   - u = Trim controls [d_e; d_a; d_r; d_p]
 
 % Imports
 import('AE5224.get_g');
@@ -153,5 +150,6 @@ d_e = double(sol.d_e);
 d_a = double(sol.d_a);
 d_r = double(sol.d_r);
 d_p = double(sol.d_p);
+u = [d_e; d_a; d_r; d_p];
 
 end

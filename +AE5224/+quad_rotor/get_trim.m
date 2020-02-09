@@ -1,5 +1,5 @@
-function [q_e, w_b, w_1, w_2, w_3, w_4] = get_trim(body, trim)
-%[q_e, w_b, w_1, w_2, w_3, w_4] = GET_TRIM(body, trim)
+function [q_e, w_b, u] = get_trim(body, trim)
+%[q_e, w_b, u] = GET_TRIM(body, trim)
 %   Get trim conditions for quadrotor aircraft
 %   
 %   Inputs:
@@ -9,10 +9,7 @@ function [q_e, w_b, w_1, w_2, w_3, w_4] = get_trim(body, trim)
 %   Outputs:
 %   - q_e = Init Earth pose [quaternion]
 %   - w_b = Init Body angle rate [rad/s]
-%   - w_1 = Prop 1 rate [rpm]
-%   - w_2 = Prop 2 rate [rpm]
-%   - w_3 = Prop 3 rate [rpm]
-%   - w_4 = Prop 4 rate [rpm]
+%   - u = Trim controls [w_1; w_2; w_3; w_4]
 
 % Imports
 import('AE5224.get_g');
@@ -43,9 +40,6 @@ mat = [...
     [-Lk_F, 0, +Lk_F, 0]; ...
     [+k_M, -k_M, +k_M, -k_M]];
 w_p2 = mat \ [F_p; M_b];
-w_1 = sqrt(w_p2(1));
-w_2 = sqrt(w_p2(2));
-w_3 = sqrt(w_p2(3));
-w_4 = sqrt(w_p2(4));
+u = sqrt(w_p2);
 
 end

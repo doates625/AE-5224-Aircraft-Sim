@@ -1,8 +1,9 @@
-function log = sim_trim(trim, t_max, del_t)
+function log = sim_trim(type_, trim, t_max, del_t)
 %log = SIM_TRIM(trim, t_max, del_t)
 %   Simulate and plot trim condition
 %   
 %   Inputs:
+%   - type_ = Aircraft type ['Fixedwing', 'Quadrotor']
 %   - trim = Trim conditions [AE5224.Trim]
 %   - t_max = Sim duration [s, def = 10.0]
 %   - del_t = Sim timestep [s, def = 0.01]
@@ -14,18 +15,27 @@ function log = sim_trim(trim, t_max, del_t)
 clc
 
 % Imports
-import('AE5224.quad_rotor.Body')
-import('AE5224.quad_rotor.Sim')
-import('AE5224.quad_rotor.get_trim')
 import('AE5224.rigid_body.Log')
 import('timing.ProgDisp')
+switch type_
+    case 'Fixedwing'
+        import('AE5224.fixed_wing.Body')
+        import('AE5224.fixed_wing.Sim')
+        import('AE5224.fixed_wing.get_trim')
+    case 'Quadrotor'
+        import('AE5224.quad_rotor.Body')
+        import('AE5224.quad_rotor.Sim')
+        import('AE5224.quad_rotor.get_trim')
+    otherwise
+        error('Invalid type: ''%s''', type_)
+end
 
 % Default args
-if nargin < 2, t_max = 10.0; end
-if nargin < 3, del_t = 0.01; end
+if nargin < 3, t_max = 10.0; end
+if nargin < 4, del_t = 0.01; end
 
 % Initial printout
-fprintf('Quadrotor Trim Simulator\n\n')
+fprintf('%s Trim Simulator\n\n', type_)
 
 % Trim solver
 fprintf('Numerical trim solver...\n')

@@ -12,8 +12,8 @@ function log = trim3(t_max, del_t)
 %   - del_t = Sim timestep [s, def = 0.01]
 
 % Imports
-import('AE5224.quad_rotor.sim_trim');
 import('AE5224.Trim');
+import('AE5224.sim_trim');
 
 % Default args
 if nargin < 1, t_max = 10.0; end
@@ -21,6 +21,6 @@ if nargin < 2, del_t = 0.01; end
 
 % Trim simulation
 trim = Trim(10, 20, 0, 100);
-log = sim_trim(trim, t_max, del_t);
+log = sim_trim('Quadrotor', trim, t_max, del_t);
 
 end

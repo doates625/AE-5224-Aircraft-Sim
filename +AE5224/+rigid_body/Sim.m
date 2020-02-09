@@ -46,11 +46,14 @@ classdef Sim < handle
             obj.del_t = del_t;
         end
         
-        function update(obj, F_b, M_b)
+        function update(obj, u)
             %UPDATE(obj, F_b, M_b)
             %   Run one simulation loop
             %   
             %   Inputs:
+            %   - u = Input vector [F_b; M_b]
+            %   
+            %   Input vector:
             %   - F_b = Net forces [Body, N]
             %   - M_b = Net moments [Body, N*m]
             
@@ -58,35 +61,38 @@ classdef Sim < handle
             import('runge_kutta.rk4');
             
             % RK4 integration
-            s0 = obj.pack(obj.p_e, obj.q_e, obj.v_e, obj.w_b);
-            ds_dt = @(t, s) obj.derivative(s, F_b, M_b);
-            s1 = rk4(ds_dt, 0, s0, obj.del_t);
-            [obj.p_e, obj.q_e, obj.v_e, obj.w_b] = obj.unpack(s1);
+            x0 = obj.pack(obj.p_e, obj.q_e, obj.v_e, obj.w_b);
+            dx_dt = @(t, x) obj.dynamics(x, u);
+            x1 = rk4(dx_dt, 0, x0, obj.del_t);
+            [obj.p_e, obj.q_e, obj.v_e, obj.w_b] = obj.unpack(x1);
             obj.t = obj.t + obj.del_t;
             
             % Quaternion normalization
             obj.q_e = obj.q_e / norm(obj.q_e);
         end
-    end
-    
-    methods (Access = protected)
-        function ds_dt = derivative(obj, s, F_b, M_b)
-            %ds_dt = DERIVATIVE(obj, s, F_b, M_b)
-            %   Compute state time-derivative
+        
+        function dx_dt = dynamics(obj, x, u)
+            %dx_dt = DYNAMICS(obj, x, u)
+            %   Compute state time derivative
             %   
             %   Inputs:
-            %   - s = Combined state vector [p_e; q_e; v_e; w_b]
+            %   - x = State vector [p_e; q_e; v_e; w_b]
+            %   - u = Input vector [F_b; M_b]
+            %   
+            %   Input vector:
             %   - F_b = Net forces Body-frame [N]
             %   - M_b = Net moments Body-frame [N*m]
             %   
             %   Outputs:
-            %   - ds_dt = State time-derivative
+            %   - dx_dt = State time derivative
             
             % Imports
             import('quat.Quat');
             
-            % Unpack states
-            [~, q_e_, v_e_, w_b_] = obj.unpack(s);
+            % Unpack states and controls
+            [~, q_e_, v_e_, w_b_] = obj.unpack(x);
+            F_b = u(1:3);
+            M_b = u(4:6);
             
             % Position and attitude
             p_e_dot = v_e_;
@@ -104,24 +110,24 @@ classdef Sim < handle
             w_b_dot = obj.body.I_b \ L_b_dot;
             
             % Pack states
-            ds_dt = obj.pack(p_e_dot, q_e_dot, v_e_dot, w_b_dot);
+            dx_dt = obj.pack(p_e_dot, q_e_dot, v_e_dot, w_b_dot);
         end
     end
     
     methods (Access = protected, Static)
-        function s = pack(p_e, q_e, v_e, w_b)
-            %s = PACK(p_e, q_e, v_e, w_b)
+        function x = pack(p_e, q_e, v_e, w_b)
+            %x = PACK(p_e, q_e, v_e, w_b)
             %   Combines states into single vector
-            s = [p_e; q_e; v_e; w_b];
+            x = [p_e; q_e; v_e; w_b];
         end
         
-        function [p_e, q_e, v_e, w_b] = unpack(s)
-            %[p_e, q_e, v_e, w_b] = UNPACK(s)
+        function [p_e, q_e, v_e, w_b] = unpack(x)
+            %[p_e, q_e, v_e, w_b] = UNPACK(x)
             %   Extracts states from single vector
-            p_e = s(1:3);
-            q_e = s(4:7);
-            v_e = s(8:10);
-            w_b = s(11:13);
+            p_e = x(1:3);
+            q_e = x(4:7);
+            v_e = x(8:10);
+            w_b = x(11:13);
         end
     end
 end
