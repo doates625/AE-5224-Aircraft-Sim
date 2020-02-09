@@ -1,8 +1,11 @@
 classdef Body < AE5224.rigid_body.Body
     %BODY Class for fixed-wing aircraft rigid body models
     %   
-    %   Modeling assumptions:
-    %   - Linearized aerodynamic coefficients
+    %   Input vector u:
+    %   - d_e = Elevator angle [rad]
+    %   - d_a = Aileron angle [rad]
+    %   - d_r = Rudder angle [rad]
+    %   - d_p = Prop throttle [0-1]
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
@@ -135,6 +138,120 @@ classdef Body < AE5224.rigid_body.Body
             obj.C_Mz_wz = -0.35;    % Angle rate z
             obj.C_Mz_da = 0.08;     % Aileron
             obj.C_Mz_dr = -0.032;   % Rudder
+        end
+        
+        function [F_b, M_b] = forces(obj, x, u)
+            %[F_b, M_b] = FORCES(obj, x, u)
+            %   Compute body-frame net forces and moments
+            %   
+            %   Inputs:
+            %   - x = State vector [p_e; q_e; v_e; w_b]
+            %   - u = Input vector [d_e; d_a; d_r; d_p]
+            %   
+            %   Outputs:
+            %   - F_b = Net force vector [N]
+            %   - M_b = Net moment vector [N*m]
+            
+            % Imports
+            import('AE5224.const.get_g');
+            import('AE5224.const.get_p');
+            import('quat.Quat');
+            
+            % Constants
+            g = get_g();
+            p = get_p();
+            
+            % Unpack states and controls
+            [~, q_e, v_e, w_b] = obj.unpack(x);
+            w_bx = w_b(1);
+            w_by = w_b(2);
+            w_bz = w_b(3);
+            d_e = u(1);
+            d_a = u(2);
+            d_r = u(3);
+            d_p = u(4);
+            
+            % Air-speed transform
+            R_eb = Quat(q_e).inv().mat_rot();
+            v_a = R_eb * v_e;
+            v_ax = v_a(1);
+            v_ay = v_a(2);
+            v_az = v_a(3);
+            V_a = norm(v_a);
+            al = atan(v_az / v_ax);
+            be = asin(v_ay / V_a);
+            
+            % Longitudinal AFMs
+            F_air = 0.5 * p * V_a^2 * obj.S_wn;
+            M_lon = F_air * obj.c_wn;
+            C_c = obj.c_wn / (2 * V_a);
+            C_Fl = ...
+                obj.C_Fl_of + ...
+                obj.C_Fl_al * al + ...
+                obj.C_Fl_wy * C_c * w_by + ...
+                obj.C_Fl_de * d_e;
+            C_Fd = ...
+                obj.C_Fd_of + ...
+                obj.C_Fd_al * al + ...
+                obj.C_Fd_wy * C_c * w_by + ...
+                obj.C_Fd_de * d_e;
+            C_My = ...
+                obj.C_My_of + ...
+                obj.C_My_al * al + ...
+                obj.C_My_wy * C_c * w_by + ...
+                obj.C_My_de * d_e;
+            Fl = F_air * C_Fl;
+            Fd = F_air * C_Fd;
+            c_al = cos(al);
+            s_al = sin(al);
+            F_ax = +Fl*s_al - Fd*c_al;
+            F_az = -Fl*c_al - Fd*s_al;
+            M_ay = M_lon * C_My;
+            
+            % Lateral AFMs
+            M_lat = F_air * obj.b_wn;
+            C_b = obj.b_wn / (2 * V_a);
+            C_Fy = ...
+                obj.C_Fy_of + ...
+                obj.C_Fy_be * be + ...
+                obj.C_Fy_wx * C_b * w_bx + ...
+                obj.C_Fy_wz * C_b * w_bz + ...
+                obj.C_Fy_da * d_a + ...
+                obj.C_Fy_dr * d_r;
+            C_Mx = ...
+                obj.C_Mx_of + ...
+                obj.C_Mx_be * be + ...
+                obj.C_Mx_wx * C_b * w_bx + ...
+                obj.C_Mx_wz * C_b * w_bz + ...
+                obj.C_Mx_da * d_a + ...
+                obj.C_Mx_dr * d_r;
+            C_Mz = ...
+                obj.C_Mz_of + ...
+                obj.C_Mz_be * be + ...
+                obj.C_Mz_wx * C_b * w_bx + ...
+                obj.C_Mz_wz * C_b * w_bz + ...
+                obj.C_Mz_da * d_a + ...
+                obj.C_Mz_dr * d_r;
+            F_ay = F_air * C_Fy;
+            M_ax = M_lat * C_Mx;
+            M_az = M_lat * C_Mz;
+            
+            % Prop FMs
+            V_p = obj.k_v * d_p;
+            F_px = 0.5 * p * obj.S_pr * obj.C_pr * (V_p^2 - V_a^2);
+            M_px = -obj.k_t * (obj.k_w * d_p)^2;
+            
+            % Gravitational forces
+            F_gz = obj.m * g;
+            F_g = R_eb * [0; 0; F_gz];
+            
+            % Sum forces and moments
+            F_a = [F_ax; F_ay; F_az];
+            F_p = [F_px; 0; 0];
+            F_b = F_a + F_p + F_g;
+            M_a = [M_ax; M_ay; M_az];
+            M_p = [M_px; 0; 0];
+            M_b = M_a + M_p;
         end
     end
 end

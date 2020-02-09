@@ -16,15 +16,14 @@ clc
 
 % Imports
 import('AE5224.rigid_body.Log')
+import('AE5224.rigid_body.Sim');
 import('timing.ProgDisp')
 switch type_
     case 'Fixedwing'
         import('AE5224.fixed_wing.Body')
-        import('AE5224.fixed_wing.Sim')
         import('AE5224.fixed_wing.get_trim')
     case 'Quadrotor'
         import('AE5224.quad_rotor.Body')
-        import('AE5224.quad_rotor.Sim')
         import('AE5224.quad_rotor.get_trim')
     otherwise
         error('Invalid type: ''%s''', type_)
