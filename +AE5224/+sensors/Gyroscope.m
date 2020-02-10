@@ -20,7 +20,7 @@ classdef Gyroscope < AE5224.sensors.Sensor
         
         function z = measure(obj, x)
             %z = MEASURE(obj, x)
-            %   Simulate accelerometer reading
+            %   Simulate gyroscope reading
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
