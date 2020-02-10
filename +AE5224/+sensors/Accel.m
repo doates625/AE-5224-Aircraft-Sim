@@ -12,7 +12,7 @@ classdef Accel < AE5224.sensors.Sensor
     methods (Access = public)
         function obj = Accel(f_s, n_d)
             %obj = ACCEL(f_s, n_d)
-            %   Construct accelerometer
+            %   Construct accelerometer simulator
             %   
             %   Inputs:
             %   - f_s = Sample rate [Hz]
