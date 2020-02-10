@@ -1,9 +1,9 @@
-classdef Gyro < AE5224.sensors.Sensor
-    %GYRO Gyroscope simulator
+classdef Gyroscope < AE5224.sensors.Sensor
+    %GYROSCOPE Gyroscope simulator
     
     methods (Access = public)
-        function obj = Gyro(f_s, n_d)
-            %obj = GYRO(f_s, n_d)
+        function obj = Gyroscope(f_s, n_d)
+            %obj = GYROSCOPE(f_s, n_d)
             %   Construct gyroscope simulator
             %   
             %   Inputs:
