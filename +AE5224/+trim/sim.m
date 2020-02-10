@@ -13,8 +13,6 @@ function log = sim(body, x_st, u_st, t_max, del_t)
 import('AE5224.rigid_body.Sim');
 import('AE5224.rigid_body.Log');
 import('AE5224.sensors.GPS');
-import('AE5224.sensors.Accel');
-import('AE5224.sensors.Gyro');
 import('timing.ProgDisp');
 
 % Setup simulator
