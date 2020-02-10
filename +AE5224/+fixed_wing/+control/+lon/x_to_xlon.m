@@ -6,14 +6,7 @@ function x_lon = x_to_xlon(x)
 %   - x = Full state vector
 %   
 %   Outputs:
-%   - x_lon = Longitudinal state vector
-%   
-%   Lon state x_lon:
-%   - v_bx = Velocity body x [m/s]
-%   - v_bz = Velocity body z [m/s]
-%   - w_by = Pitch velocity [rad/s]
-%   - th_y = Pitch angle [rad]
-%   - p_z = Negative altitude [m]
+%   - x_lon = Lon state vector
 %   
 %   Author: Dan Oates (WPI Class of 2020)
 
@@ -30,6 +23,6 @@ x_lon(1) = v_b(1);
 x_lon(2) = v_b(3);
 x_lon(3) = w_b(2);
 x_lon(4) = th_y;
-x_lon(5) = p_e(3);
+x_lon(5) = -p_e(3);
 
 end

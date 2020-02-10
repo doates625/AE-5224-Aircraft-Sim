@@ -1,34 +1,47 @@
-function [A, B, x, u] = sub_model(body, x_st, u_st, x_to_xsub, u_to_usub)
-%[A, B, x, u] = SUB_MODEL(body, x_st, u_st, x_to_xsub, u_to_usub)
+function [A_sub, B_sub, x_sub, u_sub] = sub_model(...
+    body, x_st, u_st, ...
+    x_to_xsub, xsub_to_x_ref, ...
+    u_to_usub, usub_to_u_ref)
+%[A, B, x, u] = SUB_MODEL(...
+%   body, x_st, u_st,...
+%   x_to_xsub, xsub_to_x_ref, ...
+%   u_to_usub, usub_to_u_ref)
 %   Linearized flight sub-model at trim
 %   
 %   Inputs:
 %   - body = Fixed-wing model [AE5224.fixed_wing.Body]
 %   - x_st = Trim state vector [p_e; q_e; v_e; w_b]
 %   - u_st = Trim control vector [d_e; d_a; d_r; d_p]
-%   - x_to_xsub = Function from state to sub-state
-%   - u_to_usub = Function from control to sub-control
+%   - x_to_xsub = Func : x -> x_sub
+%   - u_to_usub = Func : u -> u_sub
+%   - xsub_to_x_ref = Func : x_sub, x_ref -> x
+%   - usub_to_u_ref = Func : u_sub, u_ref -> u
 %   
 %   Outputs:
 %   - A_sub = Linearized sub-state matrix
 %   - B_sub = Linearized sub-input matrix
-%   - x = Trim sub-state vector
-%   - u = Trim sub-control vector
+%   - x_sub = Trim sub-state vector
+%   - u_sub = Trim sub-control vector
 
 % Trim sub-vectors
-x = x_to_xsub(x_st);
-u = u_to_usub(u_st);
+x_sub = x_to_xsub(x_st);
+u_sub = u_to_usub(u_st);
 
-% Intermediate Jacobians
+% Conversion functions
 x_to_xdot = @(x) body.dynamics(x, u_st);
 u_to_xdot = @(u) body.dynamics(x_st, u);
+xsub_to_x = @(x_sub) xsub_to_x_ref(x_sub, x_st);
+usub_to_u = @(u_sub) usub_to_u_ref(u_sub, u_st);
+
+% Intermediate Jacobians
 del_xdot_x = jacnum(x_to_xdot, x_st);
 del_xdot_u = jacnum(u_to_xdot, u_st);
 del_xsub_x = jacnum(x_to_xsub, x_st);
-del_usub_u = jacnum(u_to_usub, u_st);
+del_x_xsub = jacnum(xsub_to_x, x_sub);
+del_u_usub = jacnum(usub_to_u, u_sub);
 
 % Lon Jacobians
-A = del_xsub_x * del_xdot_x / del_xsub_x;
-B = del_xsub_x * del_xdot_u / del_usub_u;
+A_sub = del_xsub_x * del_xdot_x * del_x_xsub;
+B_sub = del_xsub_x * del_xdot_u * del_u_usub;
 
 end

@@ -32,21 +32,36 @@ body = Body();
 fprintf('Lon linearization...\n');
 [A_lon, B_lon, x_lon, u_lon] = ...
     AE5224.fixed_wing.control.lon.model(body, x_st, u_st);
-disp(A_lon)
-disp(B_lon)
-disp(x_lon)
-disp(u_lon)
+disp_model(A_lon, B_lon, x_lon, u_lon);
 
 % Lat linear model
 fprintf('Lat linearization...\n');
 [A_lat, B_lat, x_lat, u_lat] = ...
     AE5224.fixed_wing.control.lat.model(body, x_st, u_st);
-disp(A_lat)
-disp(B_lat)
-disp(x_lat)
-disp(u_lat)
+disp_model(A_lat, B_lat, x_lat, u_lat);
 
 % Simulate trim
 log = sim(body, x_st, u_st, t_max, del_t);
+
+function disp_model(A, B, x, u)
+    %DISP_MODEL(A, B, x, u)
+    %   Display linearized trim model
+    %   
+    %   Inputs:
+    %   - A = State matrix
+    %   - B = Input matrix
+    %   - x = Trim state
+    %   - u = Trim input
+    fprintf('State Matrix:\n');
+    disp(A)
+    fprintf('Input Matrix:\n');
+    disp(B)
+    fprintf('Trim State:\n')
+    disp(x)
+    fprintf('Trim Control:\n')
+    disp(u)
+    fprintf('Eigenvalues:\n');
+    disp(eig(A));
+end
 
 end
