@@ -28,6 +28,10 @@ fprintf('Solving for trim state...\n');
 body = Body();
 [x_st, u_st] = solve(body, trim);
 
+% TODO NOT this every time...
+
+%{
+
 % Lon linear model
 fprintf('Lon linearization...\n');
 [A_lon, B_lon, x_lon, u_lon] = ...
@@ -39,6 +43,8 @@ fprintf('Lat linearization...\n');
 [A_lat, B_lat, x_lat, u_lat] = ...
     AE5224.fixed_wing.control.lat.model(body, x_st, u_st);
 disp_model(A_lat, B_lat, x_lat, u_lat);
+
+%}
 
 % Simulate trim
 log = sim(body, x_st, u_st, t_max, del_t);
