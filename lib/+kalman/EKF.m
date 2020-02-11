@@ -56,7 +56,7 @@ classdef EKF < kalman.AbsKF
         end
     end
     
-    methods (Access = protected, Abstract)
+    methods (Access = protected)
         function x = predict_x(obj, u)
             %x = PREDICT_X(obj, u)
             %   Predict state
