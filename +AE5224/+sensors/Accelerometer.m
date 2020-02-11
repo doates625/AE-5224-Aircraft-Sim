@@ -57,7 +57,7 @@ classdef Accelerometer < AE5224.sensors.Sensor
             
             % Transform to body
             a_g = [0; 0; get_g()];
-            a_b = Quat(q_e).inv().rotate(a_e + a_g);
+            a_b = Quat(q_e).inv().rotate(a_e - a_g);
             
             % Add noise
             z = mvnrnd(a_b, obj.cov_z).';
