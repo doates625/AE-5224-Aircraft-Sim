@@ -12,7 +12,7 @@ classdef GPS < AE5224.sensors.Sensor
             %   - cov_p = Position cov matrix
             %   - cov_v = Velocity cov matrix
             %   
-            %   Default values com from textbook.
+            %   Default values com from textbook
             
             % Default args
             if nargin < 1, cov_p = diag([6.60, 6.60, 9.20]); end
@@ -32,7 +32,7 @@ classdef GPS < AE5224.sensors.Sensor
             %   - x = State vector [p_e; q_e; v_e; w_b]
             %   
             %   Outputs:
-            %   - z = Observation vector [p_e; q_e]
+            %   - z = Observation vector [p_e; v_e]
             
             % Imports
             import('AE5224.rigid_body.Model.unpack_x');

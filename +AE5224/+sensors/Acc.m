@@ -1,5 +1,5 @@
-classdef Accelerometer < AE5224.sensors.Sensor
-    %ACCELEROMETER Accelerometer simulator
+classdef Acc < AE5224.sensors.Sensor
+    %ACC Accelerometer simulator
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
@@ -10,9 +10,9 @@ classdef Accelerometer < AE5224.sensors.Sensor
     end
     
     methods (Access = public)
-        function obj = Accelerometer(f_s, n_d)
-            %obj = ACCELEROMETER(f_s, n_d)
-            %   Construct accelerometer simulator
+        function obj = Acc(f_s, n_d)
+            %obj = ACC(f_s, n_d)
+            %   Construct accelerometer
             %   
             %   Inputs:
             %   - f_s = Sample rate [Hz]

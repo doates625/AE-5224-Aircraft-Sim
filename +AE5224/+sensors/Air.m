@@ -1,13 +1,11 @@
-classdef Airspeed < AE5224.sensors.Sensor
-    %AIRSPEED Simulated 3-axis airspeed sensor
-    %   
-    %   Ref: https://www.rcbenchmark.com/products/1580-pressure-sensor-airspeed
+classdef Air < AE5224.sensors.Sensor
+    %AIR 3-Axis airspeed sensor simulator
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
     methods (Access = public)
-        function obj = Airspeed(cov_v)
-            %obj = AIRSPEED(cov_v)
+        function obj = Air(cov_v)
+            %obj = Air(cov_v)
             %   Construct 3-axis airspeed sensor
             %   
             %   Inputs:
@@ -19,7 +17,7 @@ classdef Airspeed < AE5224.sensors.Sensor
             end
             
             % Constructor
-            cov_z = diag(repmat(cov_v, 3, 1));
+            cov_z = cov_v * eye(3);
             obj@AE5224.sensors.Sensor(cov_z);
         end
         
@@ -34,11 +32,11 @@ classdef Airspeed < AE5224.sensors.Sensor
             %   - z = Observation [v_bx; v_by; v_bz]
             
             % Imports
-            import('AE5224.rigid_body.Body.unpack');
+            import('AE5224.rigid_body.Model.unpack_x');
             import('quat.Quat');
             
             % Function
-            [~, q_e, v_e, ~] = unpack(x);
+            [~, q_e, v_e, ~] = unpack_x(x);
             v_b = Quat(q_e).inv().rotate(v_e);
             z = mvnrnd(v_b, obj.cov_z).';
         end
