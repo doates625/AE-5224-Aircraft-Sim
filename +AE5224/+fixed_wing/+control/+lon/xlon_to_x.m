@@ -12,12 +12,12 @@ function x = xlon_to_x(x_lon, x)
 %   Author: Dan Oates (WPI Class of 2020)
 
 % Imports
-import('AE5224.rigid_body.Body.unpack');
-import('AE5224.rigid_body.Body.pack');
+import('AE5224.rigid_body.Model.unpack_x');
+import('AE5224.rigid_body.Model.pack_x');
 import('quat.Quat');
 
 % Unpack reference state
-[p_e, q_e, v_e, w_b] = unpack(x);
+[p_e, q_e, v_e, w_b] = unpack_x(x);
 
 % Attitude
 [th_z, ~, th_x] = Quat(q_e).euler();
@@ -41,6 +41,6 @@ w_b(2) = x_lon(3);
 p_e(3) = x_lon(5);
 
 % Pack state
-x = pack(p_e, q_e, v_e, w_b);
+x = pack_x(p_e, q_e, v_e, w_b);
 
 end

@@ -12,12 +12,12 @@ function x = xlat_to_x(x_lat, x)
 %   Author: Dan Oates (WPI Class of 2020)
 
 % Imports
-import('AE5224.rigid_body.Body.unpack');
-import('AE5224.rigid_body.Body.pack');
+import('AE5224.rigid_body.Model.unpack_x');
+import('AE5224.rigid_body.Model.pack_x');
 import('quat.Quat');
 
 % Unpack reference state
-[p_e, q_e, v_e, w_b] = unpack(x);
+[p_e, q_e, v_e, w_b] = unpack_x(x);
 
 % Attitude
 [~, th_y, ~] = Quat(q_e).euler();
@@ -39,6 +39,6 @@ w_b(1) = x_lat(2);
 w_b(3) = x_lat(3);
 
 % Pack state
-x = pack(p_e, q_e, v_e, w_b);
+x = pack_x(p_e, q_e, v_e, w_b);
 
 end

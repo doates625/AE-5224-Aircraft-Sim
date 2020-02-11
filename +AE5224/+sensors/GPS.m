@@ -35,10 +35,10 @@ classdef GPS < AE5224.sensors.Sensor
             %   - z = Observation vector [p_e; q_e]
             
             % Imports
-            import('AE5224.rigid_body.Body.unpack');
+            import('AE5224.rigid_body.Model.unpack_x');
             
             % Function
-            [p_e, ~, v_e, ~] = unpack(x);
+            [p_e, ~, v_e, ~] = unpack_x(x);
             z = mvnrnd([p_e; v_e], obj.cov_z).';
         end
     end

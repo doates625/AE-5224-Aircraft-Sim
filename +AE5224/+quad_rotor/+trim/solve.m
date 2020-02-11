@@ -1,9 +1,9 @@
-function [x_st, u_st] = solve(body, trim)
+function [x_st, u_st] = solve(model, trim)
 %[x_st, u_st] = GET_TRIM(body, trim)
 %   Get trim conditions for quadrotor aircraft
 %   
 %   Inputs:
-%   - body = Quadrotor model [AE5224.quad_rotor.Body]
+%   - model = Quadrotor model [AE5224.quad_rotor.Model]
 %   - trim = Trim conditions [AE5224.Trim]
 %   
 %   Outputs:
@@ -11,16 +11,16 @@ function [x_st, u_st] = solve(body, trim)
 %   - u = Trim controls [w_1; w_2; w_3; w_4]
 
 % Imports
-import('AE5224.rigid_body.Body.pack');
+import('AE5224.rigid_body.Model.pack_x');
 import('AE5224.const.get_g');
 import('quat.Quat');
 
 % Unpack trim
 w_e = trim.w_e;
-F_c = trim.get_F_c(body.m);
+F_c = trim.get_F_c(model.m);
 
 % Trim states
-F_g = body.m*get_g();   % Gravity [N]
+F_g = model.m*get_g();  % Gravity [N]
 F_p = hypot(F_c, F_g);  % Force norm [N]
 tx = atan2(F_c, F_g);   % Roll angle [rad]
 x_hat = [1; 0; 0];      % X unit vector
@@ -30,10 +30,10 @@ w_b = R_be \ w_e;       % Body angle rate [rad/s]
 q_e = q_e.vector();     % Convert to vector
 
 % Trim controls
-M_b = cross(w_b, body.I_b*w_b);
-k_F = body.k_F;
-k_M = body.k_M;
-Lk_F = body.L * body.k_F;
+M_b = cross(w_b, model.I_b*w_b);
+k_F = model.k_F;
+k_M = model.k_M;
+Lk_F = model.L * model.k_F;
 mat = [...
     [+k_F, +k_F, +k_F, +k_F]; ...
     [0, +Lk_F, 0, -Lk_F]; ...
@@ -43,6 +43,6 @@ w_p2 = mat \ [F_p; M_b];
 u_st = sqrt(w_p2);
 
 % Pack trim state
-x_st = pack(trim.p_e, q_e, trim.v_e, w_b);
+x_st = pack_x(trim.p_e, q_e, trim.v_e, w_b);
 
 end

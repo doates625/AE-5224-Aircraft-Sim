@@ -12,7 +12,7 @@ function log = test(trim, t_max, del_t)
 clc
 
 % Imports
-import('AE5224.fixed_wing.Body');
+import('AE5224.fixed_wing.Model');
 import('AE5224.fixed_wing.trim.solve');
 import('AE5224.trim.sim');
 
@@ -25,8 +25,8 @@ fprintf('Fixedwing Trim Test\n\n');
 
 % Trim solver
 fprintf('Solving for trim state...\n');
-body = Body();
-[x_st, u_st] = solve(body, trim);
+model = Model();
+[x_st, u_st] = solve(model, trim);
 
 % TODO NOT this every time...
 
@@ -35,19 +35,19 @@ body = Body();
 % Lon linear model
 fprintf('Lon linearization...\n');
 [A_lon, B_lon, x_lon, u_lon] = ...
-    AE5224.fixed_wing.control.lon.model(body, x_st, u_st);
+    AE5224.fixed_wing.control.lon.model(model, x_st, u_st);
 disp_model(A_lon, B_lon, x_lon, u_lon);
 
 % Lat linear model
 fprintf('Lat linearization...\n');
 [A_lat, B_lat, x_lat, u_lat] = ...
-    AE5224.fixed_wing.control.lat.model(body, x_st, u_st);
+    AE5224.fixed_wing.control.lat.model(model, x_st, u_st);
 disp_model(A_lat, B_lat, x_lat, u_lat);
 
 %}
 
 % Simulate trim
-log = sim(body, x_st, u_st, t_max, del_t);
+log = sim(model, x_st, u_st, t_max, del_t);
 
 function disp_model(A, B, x, u)
     %DISP_MODEL(A, B, x, u)

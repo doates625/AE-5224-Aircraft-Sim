@@ -40,12 +40,12 @@ classdef Accelerometer < AE5224.sensors.Sensor
             %   - z = Observation [a_bx; a_by; a_bz]
             
             % Imports
-            import('AE5224.rigid_body.Body.unpack');
+            import('AE5224.rigid_body.Model.unpack_x');
             import('AE5224.const.get_g');
             import('quat.Quat');
             
             % Unpack state
-            [~, q_e, v_e_, ~] = unpack(x);
+            [~, q_e, v_e_, ~] = unpack_x(x);
             
             % Earth acceleration
             a_e = (v_e_ - obj.v_e) * obj.f_s;

@@ -3,7 +3,7 @@ function log = trim3(t_max, del_t)
 %   Simulate trim3 condition
 %   
 %   Inputs:
-%   - t_max = Sim duration [s, def = 120.0]
+%   - t_max = Sim duration [s, def = 60.0]
 %   - del_t = Sim timestep [s, def = 0.01]
 %   
 %   Trim conditions:
@@ -17,7 +17,7 @@ import('AE5224.trim.Trim');
 import('AE5224.fixed_wing.trim.test');
 
 % Default args
-if nargin < 1, t_max = 120.0; end
+if nargin < 1, t_max = 60.0; end
 if nargin < 2, del_t = 0.01; end
 
 % Trim test

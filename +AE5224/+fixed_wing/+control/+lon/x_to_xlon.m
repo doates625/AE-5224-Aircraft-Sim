@@ -11,12 +11,12 @@ function x_lon = x_to_xlon(x)
 %   Author: Dan Oates (WPI Class of 2020)
 
 % Imports
-import('AE5224.rigid_body.Body.unpack');
+import('AE5224.rigid_body.Model.unpack_x');
 import('quat.Quat');
 
 % Function
 x_lon = zeros(5, 1);
-[p_e, q_e, v_e, w_b] = unpack(x);
+[p_e, q_e, v_e, w_b] = unpack_x(x);
 [~, th_y, ~] = Quat(q_e).euler();
 v_b = Quat(q_e).inv().rotate(v_e);
 x_lon(1) = v_b(1);

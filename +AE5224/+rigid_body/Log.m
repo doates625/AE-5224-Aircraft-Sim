@@ -6,10 +6,10 @@ classdef Log < handle
     properties (SetAccess = protected)
         sim;    % Simulator [AE5224.rigid_body.Sim]
         t;      % Timestamp log [s]
-        p_e;    % Position log [Earth, m]
-        q_e;    % Attitude log [Earth, quaternion]
-        v_e;    % Linear velocity [Earth, m]
-        w_b;    % Angular velocity [Body, rad/s]
+        p_e;    % Position Earth log [m]
+        q_e;    % Attitude Earth log [quat]
+        v_e;    % Linear velocity Earth log [m]
+        w_b;    % Angular velocity Earth log [rad/s]
     end
     
     methods (Access = public)
@@ -31,10 +31,10 @@ classdef Log < handle
             %UPDATE(obj) Add current sim state to log
             
             % Imports
-            import('AE5224.rigid_body.Body.unpack');
+            import('AE5224.rigid_body.Model.unpack_x');
             
             % Function
-            [p_e_, q_e_, v_e_, w_b_] = unpack(obj.sim.x);
+            [p_e_, q_e_, v_e_, w_b_] = unpack_x(obj.sim.x);
             obj.t = [obj.t, obj.sim.t];
             obj.p_e = [obj.p_e, p_e_];
             obj.q_e = [obj.q_e, q_e_];
@@ -108,14 +108,15 @@ classdef Log < handle
         end
         
         function plot_path(obj)
-            %PLOT_PATH(obj) Plots path in 3D space
+            %PLOT_PATH(obj, axes_)
+            %   Plots path in 3D space
+            %   - axes_ = Plot axes [Axes, def = gca]
             
             % Imports
-            import('quat.Quat');
             import('live_plot.Frame3D');
+            import('quat.Quat');
             
             % Format figure
-            figure;
             hold on, grid on
             title('Body Path')
             xlabel('Pos-X [m]')
@@ -126,7 +127,7 @@ classdef Log < handle
             p_x = obj.p_e(1, :);
             p_y = obj.p_e(2, :);
             p_z = obj.p_e(3, :);
-            plot3(p_x, p_y, p_z, 'k--')
+            plot3(p_x, p_y, p_z, 'k-')
             
             % Plot pose trajectory
             n = length(obj.t);

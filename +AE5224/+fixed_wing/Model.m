@@ -1,5 +1,5 @@
-classdef Body < AE5224.rigid_body.Body
-    %BODY Class for fixed-wing aircraft rigid body models
+classdef Model < AE5224.rigid_body.Model
+    %MODEL Class for fixed-wing aircraft models
     %   
     %   Input vector u:
     %   - d_e = Elevator angle [rad]
@@ -66,8 +66,8 @@ classdef Body < AE5224.rigid_body.Body
     end
     
     methods (Access = public)
-        function obj = Body()
-            %obj = BODY()
+        function obj = Model()
+            %obj = MODEL()
             %   Create fixed-wing aircraft model
             %   Uses parameters from Aerosonde UAV
             
@@ -83,7 +83,7 @@ classdef Body < AE5224.rigid_body.Body
                 [I_xx, I_xy, I_xz]; ...
                 [I_xy, I_yy, I_yz]; ...
                 [I_xz, I_yz, I_zz]];
-            obj@AE5224.rigid_body.Body(m, I_b);
+            obj@AE5224.rigid_body.Model(m, I_b);
             
             % Dimensional constants
             obj.S_wn = 0.55;        % Wing planform area [m^2]
@@ -153,6 +153,7 @@ classdef Body < AE5224.rigid_body.Body
             %   - M_b = Net moment vector [N*m]
             
             % Imports
+            import('AE5224.rigid_body.Model.unpack_x');
             import('AE5224.const.get_g');
             import('AE5224.const.get_p');
             import('quat.Quat');
@@ -162,7 +163,7 @@ classdef Body < AE5224.rigid_body.Body
             p = get_p();
             
             % Unpack states and controls
-            [~, q_e, v_e, w_b] = obj.unpack(x);
+            [~, q_e, v_e, w_b] = unpack_x(x);
             w_bx = w_b(1);
             w_by = w_b(2);
             w_bz = w_b(3);

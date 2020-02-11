@@ -29,10 +29,10 @@ classdef Gyroscope < AE5224.sensors.Sensor
             %   - z = Observation [w_bx; w_by; w_bz]
             
             % Imports
-            import('AE5224.rigid_body.Body.unpack');
+            import('AE5224.rigid_body.Model.unpack_x');
             
             % Function
-            [~, ~, ~, w_b] = unpack(x);
+            [~, ~, ~, w_b] = unpack_x(x);
             z = mvnrnd(w_b, obj.cov_z).';
         end
     end

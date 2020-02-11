@@ -1,5 +1,5 @@
-classdef Body < AE5224.rigid_body.Body
-    %BODY Class for quadrotor aircraft rigid body models
+classdef Model < AE5224.rigid_body.Model
+    %MODEL Quadrotor aircraft rigid body model
     %   
     %   Modeling assumptions:
     %   - Instant motor speed control
@@ -14,8 +14,8 @@ classdef Body < AE5224.rigid_body.Body
     end
     
     methods (Access = public)
-        function obj = Body()
-            %obj = BODY()
+        function obj = Model()
+            %obj = MODEL()
             %   Construct quadrotor aircraft model
             %   Uses parameters from Hummingbird UAV
 
@@ -25,7 +25,7 @@ classdef Body < AE5224.rigid_body.Body
             I_yy = 2.32e-03;
             I_zz = 4.00e-03;
             I_b = diag([I_xx, I_yy, I_zz]);
-            obj@AE5224.rigid_body.Body(m, I_b);
+            obj@AE5224.rigid_body.Model(m, I_b);
             
             % Quadrotor constants
             obj.L = 0.175;
@@ -46,11 +46,12 @@ classdef Body < AE5224.rigid_body.Body
             %   - M_b = Net moment vector [N*m]
             
             % Imports
+            import('AE5224.rigid_body.Model.unpack_x');
             import('AE5224.const.get_g');
             import('quat.Quat');
             
             % Unpack state vector
-            [~, q_e, ~, ~] = obj.unpack(x);
+            [~, q_e, ~, ~] = unpack_x(x);
             
             % Convert input to FMs
             w_p2 = u.^2;

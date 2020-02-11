@@ -1,4 +1,4 @@
-classdef (Abstract) Body < handle
+classdef (Abstract) Model < handle
     %BODY Class for 3D rigid body models
     %   
     %   State vector x:
@@ -19,8 +19,8 @@ classdef (Abstract) Body < handle
     end
     
     methods (Access = public, Static)
-        function x = pack(p_e, q_e, v_e, w_b)
-            %x = PACK(p_e, q_e, v_e, w_b)
+        function x = pack_x(p_e, q_e, v_e, w_b)
+            %x = PACK_X(p_e, q_e, v_e, w_b)
             %   Combines states into single vector
             %   
             %   Inputs:
@@ -34,8 +34,8 @@ classdef (Abstract) Body < handle
             x = [p_e; q_e; v_e; w_b];
         end
         
-        function [p_e, q_e, v_e, w_b] = unpack(x)
-            %[p_e, q_e, v_e, w_b] = UNPACK(x)
+        function [p_e, q_e, v_e, w_b] = unpack_x(x)
+            %[p_e, q_e, v_e, w_b] = UNPACK_X(x)
             %   Extracts states from single vector
             %   
             %   Inputs:
@@ -54,8 +54,8 @@ classdef (Abstract) Body < handle
     end
     
     methods (Access = public)
-        function obj = Body(m, I_b)
-            %obj = BODY(m, I_b)
+        function obj = Model(m, I_b)
+            %obj = MODEL(m, I_b)
             %   Construct rigid body model
             %   
             %   Inputs:
@@ -112,7 +112,7 @@ classdef (Abstract) Body < handle
             import('quat.Quat');
             
             % Unpack state
-            [~, q_e, v_e, w_b] = obj.unpack(x);
+            [~, q_e, v_e, w_b] = obj.unpack_x(x);
             
             % Position and attitude
             p_e_dot = v_e;
@@ -130,7 +130,7 @@ classdef (Abstract) Body < handle
             w_b_dot = obj.I_b \ L_b_dot;
             
             % Pack states
-            x_dot = obj.pack(p_e_dot, q_e_dot, v_e_dot, w_b_dot);
+            x_dot = obj.pack_x(p_e_dot, q_e_dot, v_e_dot, w_b_dot);
         end
     end
 end

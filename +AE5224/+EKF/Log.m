@@ -48,7 +48,6 @@ classdef Log < handle
             import('live_plot.Frame3D');
             
             % Format figure
-            figure;
             hold on, grid on
             title('Body Path')
             xlabel('Pos-X [m]')
@@ -70,6 +69,9 @@ classdef Log < handle
                 frame.plot_x.plot_.Color = 'r';
                 frame.plot_y.plot_.Color = 'g';
                 frame.plot_z.plot_.Color = 'b';
+                frame.plot_x.plot_.LineStyle = '--';
+                frame.plot_y.plot_.LineStyle = '--';
+                frame.plot_z.plot_.LineStyle = '--';
                 frame.plot_x.plot_.LineWidth = 2;
                 frame.plot_y.plot_.LineWidth = 2;
                 frame.plot_z.plot_.LineWidth = 2;

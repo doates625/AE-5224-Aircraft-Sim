@@ -12,7 +12,7 @@ function log_sim = sim(body, x_st, u_st, t_max, del_t)
 % Imports
 import('AE5224.const.get_b');
 import('AE5224.rigid_body.Sim');
-import('AE5224.rigid_body.Body.unpack');
+import('AE5224.rigid_body.Model.unpack_x');
 import('AE5224.sensors.Gyroscope');
 import('AE5224.sensors.Accelerometer');
 import('AE5224.sensors.Magnetometer');
@@ -40,7 +40,7 @@ n_gps = round(f_gps / sim.del_t);
 
 % Create EKF
 get_set_del_t(del_t);
-[p_e, q_e, v_e, ~] = unpack(x_st);
+[p_e, q_e, v_e, ~] = unpack_x(x_st);
 w_e = zeros(3, 1);
 b_e = get_b();
 xh = pack_x(q_e, p_e, v_e, w_e, b_e);
@@ -87,6 +87,9 @@ end
 
 % Plot results
 fprintf('Plotting...\n')
+
+% Trajectories
+figure;
 log_sim.plot_path();
 log_ekf.plot_path();
 drawnow

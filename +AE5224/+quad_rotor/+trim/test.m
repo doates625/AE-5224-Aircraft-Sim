@@ -12,7 +12,7 @@ function log = test(trim, t_max, del_t)
 clc
 
 % Imports
-import('AE5224.quad_rotor.Body');
+import('AE5224.quad_rotor.Model');
 import('AE5224.quad_rotor.trim.solve');
 import('AE5224.trim.sim');
 
@@ -25,10 +25,10 @@ fprintf('Quadrotor Trim Test\n\n');
 
 % Trim solver
 fprintf('Solving for trim state...\n');
-body = Body();
-[x_st, u_st] = solve(body, trim);
+model = Model();
+[x_st, u_st] = solve(model, trim);
 
 % Simulate trim
-log = sim(body, x_st, u_st, t_max, del_t);
+log = sim(model, x_st, u_st, t_max, del_t);
 
 end
