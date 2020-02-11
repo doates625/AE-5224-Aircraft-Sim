@@ -1,6 +1,12 @@
 classdef Sim < handle
     %SIM Class for 3D rigid body simulation
     %   
+    %   State vecor x:
+    %   - p_e = Position Earth [m]
+    %   - q_e = Attitude Earth [quat]
+    %   - v_e = Velocity Earth [m/s]
+    %   - w_b = Angle rate Body [rad/s]
+    %   
     %   Author: Dan Oates (WPI Class of 2020)
     
     properties (SetAccess = protected)
