@@ -3,10 +3,6 @@ classdef Magnetometer < AE5224.sensors.Sensor
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
-    properties (Access = public, Constant)
-        b_e = [50; 0; 0];   % Earth-fixed magnetic field [uT]
-    end
-    
     methods (Access = public)
         function obj = Magnetometer(cov_b)
             %obj = MAGNETOMETER(cov_b)
@@ -36,11 +32,13 @@ classdef Magnetometer < AE5224.sensors.Sensor
             
             % Imports
             import('AE5224.rigid_body.Body.unpack');
+            import('AE5224.const.get_b');
             import('quat.Quat');
             
             % Function
             [~, q_e, ~, ~] = unpack(x);
-            b_b = Quat(q_e).inv().rotate(obj.b_e);
+            b_e = get_b();
+            b_b = Quat(q_e).inv().rotate(b_e);
             z = mvnrnd(b_b, obj.cov_z).';
         end
     end
