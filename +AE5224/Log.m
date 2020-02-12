@@ -15,18 +15,27 @@ classdef Log < handle
         q_e_act;    % Attitude Earth [quat]
         v_e_act;    % Velocity Earth [m/s]
         w_b_act;    % Angular velocity Body [rad/s]
+        %   w_e_act;    % Air velocity Earth [m/s]
         b_e_act;    % Magnetic field Earth [uT]
         
         % Measurement logs
-        % p_e_mea;    % Position Earth [m]
-        % v_e_mea;    % Velocity Earth [m]
+        p_e_mea;    % Position Earth [m]
+        v_e_mea;    % Velocity Earth [m]
+        %   w_b_mea;    % Angular velocity Body [rad/s]
         
         % Estimated state logs
-        q_e_est;    % Attitude Earth [quat]
         p_e_est;    % Position Earth [m]
+        q_e_est;    % Attitude Earth [quat]
         v_e_est;    % Velocity Earth [m/s]
         w_e_est;    % Air velocity Earth [m/s]
         b_e_est;    % Magnetic field Earth [uT]
+        
+        % Estimate std logs
+        p_e_std;    % Position Earth [m]
+        q_e_std;    % Attitude Earth [quat]
+        v_e_std;    % Velocity Earth [m/s]
+        w_e_std;    % Air velocity Earth [m/s]
+        b_e_std;    % Magnetic field Earth [uT]
     end
     
     methods (Access = public)
@@ -47,18 +56,25 @@ classdef Log < handle
                 t_max = varargin{3};
                 
                 % Pre-allocate logs
-                n = floor(t_max / obj.sim.del_t);
+                n = ceil(t_max / obj.sim.del_t) + 1;
                 obj.log_t = nan(1, n);
                 obj.p_e_act = nan(3, n);
                 obj.q_e_act = nan(4, n);
                 obj.v_e_act = nan(3, n);
                 obj.w_b_act = nan(3, n);
                 obj.b_e_act = nan(3, n);
-                obj.q_e_est = nan(4, n);
+                obj.p_e_mea = nan(3, n);
+                obj.v_e_mea = nan(3, n);
                 obj.p_e_est = nan(3, n);
+                obj.q_e_est = nan(4, n);
                 obj.v_e_est = nan(3, n);
                 obj.w_e_est = nan(3, n);
                 obj.b_e_est = nan(3, n);
+                obj.p_e_std = nan(3, n);
+                obj.q_e_std = nan(4, n);
+                obj.v_e_std = nan(3, n);
+                obj.w_e_std = nan(3, n);
+                obj.b_e_std = nan(3, n);
                 obj.log_i = 1;
                 
                 % Initial update
@@ -72,21 +88,20 @@ classdef Log < handle
             end
         end
         
-        function update(obj)
-            %UPDATE(obj, z_gps) Add states and measurements to log
-            
+        function update(obj, z_gps)
+            %UPDATE(obj, z_gps)
+            %   Add states and measurements to log
+            %   - z_gps = GPS reading [opt]
+
             % Imports
             import('AE5224.const.get_b');
             import('AE5224.rigid_body.Model');
+            import('AE5224.sensors.GPS');
             import('AE5224.EKF');
             
-            % Unpack state and estimate
+            % Simulation logs
             [p_e_act_, q_e_act_, v_e_act_, w_b_act_] = ...
                 Model.unpack_x(obj.sim.x);
-            [q_e_est_, p_e_est_, v_e_est_, w_e_est_, b_e_est_] = ...
-                EKF.unpack_x(obj.ekf.x_est);
-            
-            % Simulation logs
             obj.log_t(obj.log_i) = obj.sim.t;
             obj.p_e_act(:, obj.log_i) = p_e_act_;
             obj.q_e_act(:, obj.log_i) = q_e_act_;
@@ -94,15 +109,59 @@ classdef Log < handle
             obj.w_b_act(:, obj.log_i) = w_b_act_;
             obj.b_e_act(:, obj.log_i) = get_b();
             
+            % Measurement logs
+            if nargin > 1
+                [p_e_mea_, v_e_mea_] = GPS.unpack_z(z_gps);
+                obj.p_e_mea(:, obj.log_i) = p_e_mea_;
+                obj.v_e_mea(:, obj.log_i) = v_e_mea_;
+            end
+            
             % Kalman filter logs
-            obj.q_e_est(:, obj.log_i) = q_e_est_;
+            [q_e_est_, p_e_est_, v_e_est_, w_e_est_, b_e_est_] = ...
+                EKF.unpack_x(obj.ekf.x_est);
             obj.p_e_est(:, obj.log_i) = p_e_est_;
+            obj.q_e_est(:, obj.log_i) = q_e_est_;
             obj.v_e_est(:, obj.log_i) = v_e_est_;
             obj.w_e_est(:, obj.log_i) = w_e_est_;
             obj.b_e_est(:, obj.log_i) = b_e_est_;
             
+            % Kalman filter stds
+            x_std = sqrt(diag(obj.ekf.cov_x));
+            [q_e_std_, p_e_std_, v_e_std_, w_e_std_, b_e_std_] = ...
+                EKF.unpack_x(x_std);
+            obj.p_e_std(:, obj.log_i) = p_e_std_;
+            obj.q_e_std(:, obj.log_i) = q_e_std_;
+            obj.v_e_std(:, obj.log_i) = v_e_std_;
+            obj.w_e_std(:, obj.log_i) = w_e_std_;
+            obj.b_e_std(:, obj.log_i) = b_e_std_;
+            
             % Increment log counter
             obj.log_i = obj.log_i + 1;
+        end
+        
+        function save(obj)
+            %SAVE(obj) Trim and save object to 'log.mat'
+            obj.log_i = obj.log_i - 2;
+            range_i = 1:obj.log_i;
+            obj.log_t = obj.log_t(range_i);
+            obj.p_e_act = obj.p_e_act(:, range_i);
+            obj.q_e_act = obj.q_e_act(:, range_i);
+            obj.v_e_act = obj.v_e_act(:, range_i);
+            obj.w_b_act = obj.w_b_act(:, range_i);
+            obj.b_e_act = obj.b_e_act(:, range_i);
+            obj.p_e_mea = obj.p_e_mea(:, range_i);
+            obj.v_e_mea = obj.v_e_mea(:, range_i);
+            obj.q_e_est = obj.q_e_est(:, range_i);
+            obj.p_e_est = obj.p_e_est(:, range_i);
+            obj.v_e_est = obj.v_e_est(:, range_i);
+            obj.w_e_est = obj.w_e_est(:, range_i);
+            obj.b_e_est = obj.b_e_est(:, range_i);
+            obj.p_e_std = obj.p_e_std(:, range_i);
+            obj.q_e_std = obj.q_e_std(:, range_i);
+            obj.v_e_std = obj.v_e_std(:, range_i);
+            obj.w_e_std = obj.w_e_std(:, range_i);
+            obj.b_e_std = obj.b_e_std(:, range_i);
+            save('log.mat', 'obj');
         end
         
         function plot(obj)
@@ -125,7 +184,10 @@ classdef Log < handle
                 ylabel('Pos [m]')
                 plot(obj.log_t, obj.p_e_act(i, :), 'k--')
                 plot(obj.log_t, obj.p_e_est(i, :), 'b-')
-                legend('Act', 'Est')
+                plot(obj.log_t, obj.p_e_est(i, :) + 2*obj.p_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.p_e_est(i, :) - 2*obj.p_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.p_e_mea(i, :), 'rx')
+                legend('Act', 'Est', 'Est+', 'Est-', 'Mea')
                 if i == 3
                     set(gca, 'YDir','reverse')
                 end
@@ -144,7 +206,10 @@ classdef Log < handle
                 ylabel('Vel [m/s]')
                 plot(obj.log_t, obj.v_e_act(i, :), 'k--');
                 plot(obj.log_t, obj.v_e_est(i, :), 'b-');
-                legend('Act', 'Est')
+                plot(obj.log_t, obj.v_e_est(i, :) + 2*obj.v_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.v_e_est(i, :) - 2*obj.v_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.v_e_mea(i, :), 'rx');
+                legend('Act', 'Est', 'Est+', 'Est-', 'Mea')
                 if i == 3
                     set(gca, 'YDir','reverse')
                 end
@@ -163,7 +228,9 @@ classdef Log < handle
                 ylabel('Quat')
                 plot(obj.log_t, obj.q_e_act(i, :), 'k--')
                 plot(obj.log_t, obj.q_e_est(i, :), 'b-')
-                legend('Act', 'Est')
+                plot(obj.log_t, obj.q_e_est(i, :) + 2*obj.q_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.q_e_est(i, :) - 2*obj.q_e_std(i, :), 'b--');
+                legend('Act', 'Est', 'Est+', 'Est-')
             end
         end
         
@@ -231,11 +298,6 @@ classdef Log < handle
             view(-105, +25)
             axis equal
             camproj perspective
-        end
-        
-        function save(obj)
-            %SAVE(obj) Save object to 'log.mat'
-            save('log.mat', 'obj');
         end
     end
 end

@@ -46,13 +46,14 @@ b_e = get_b();
 x_est = pack_x(q_e, p_e, v_e, w_e, b_e);
 cov_w = gyro.cov_z;
 cov_a = accel.cov_z;
-cov_p = gps.cov_z(1:3, 1:3);
-cov_v = gps.cov_z(4:6, 4:6);
+cov_v = gps.cov_v;
+cov_p = gps.cov_p;
+cov_b = mag.cov_z;
 cov_x = zeros(16);
 cov_x(05:07, 05:07) = cov_p;
 cov_x(08:10, 08:10) = cov_v;
 cov_x(11:13, 11:13) = cov_v;
-cov_x(14:16, 14:16) = mag.cov_z;
+cov_x(14:16, 14:16) = cov_b;
 ekf = EKF(x_est, cov_x, cov_w, cov_a, cov_p, cov_v, del_t);
 
 % Create logger
@@ -64,7 +65,7 @@ prog = ProgDisp();
 prog.start();
 i_sim = 1;
 while sim.t < t_max
-    % Run simulator
+    % Simulate dynamics
     sim.update(u_st)
     x = sim.x;
     
@@ -78,10 +79,12 @@ while sim.t < t_max
     if ~mod(i_sim, n_gps)
         z_gps = gps.measure(x);
         ekf.correct(z_gps);
+        log.update(z_gps);
+    else
+        log.update();
     end
     
-    % Update logs
-    log.update();
+    % Progress tracker
     prog.update(sim.t / t_max);
     i_sim = i_sim + 1;
 end
