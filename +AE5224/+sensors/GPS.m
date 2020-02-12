@@ -3,14 +3,40 @@ classdef GPS < AE5224.sensors.Sensor
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
+    properties (SetAccess = protected)
+        cov_p;  % Position cov matrix [m^2]
+        cov_v;  % Velocity cov matrix [(m/s)^2]
+    end
+    
+    methods (Access = public, Static)
+        function z = pack_z(p_e, v_e)
+            %z = PACK_Z(p_e, v_e)
+            %   Make measurement vector from components
+            %   - p_e = Position Earth [m]
+            %   - v_e = Velocity Earth [m/s]
+            %   - z = Measurement vector
+            z = [p_e; v_e];
+        end
+        
+        function [p_e, v_e] = unpack_z(z)
+            %[p_e, v_e] = UNPACK_Z(z)
+            %   Get components from measurement vector
+            %   - z = Measurement vector
+            %   - p_e = Position Earth [m]
+            %   - v_e = Velocity Earth [m/s]
+            p_e = z(1:3);
+            v_e = z(4:6);
+        end
+    end
+    
     methods (Access = public)
         function obj = GPS(cov_p, cov_v)
             %obj = GPS(cov_p, cov_v)
             %   Construct GPS simulator
             %   
             %   Inputs:
-            %   - cov_p = Position cov matrix
-            %   - cov_v = Velocity cov matrix
+            %   - cov_p = Position cov matrix [m^2]
+            %   - cov_v = Velocity cov matrix [(m/s)^2]
             %   
             %   Default values com from textbook
             
@@ -22,6 +48,10 @@ classdef GPS < AE5224.sensors.Sensor
             zer = zeros(3);
             cov_z = [cov_p, zer; zer, cov_v];
             obj@AE5224.sensors.Sensor(cov_z);
+            
+            % Individual covs
+            obj.cov_p = cov_p;
+            obj.cov_v = cov_v;
         end
         
         function z = measure(obj, x)
@@ -39,7 +69,8 @@ classdef GPS < AE5224.sensors.Sensor
             
             % Function
             [p_e, ~, v_e, ~] = unpack_x(x);
-            z = mvnrnd([p_e; v_e], obj.cov_z).';
+            z = obj.pack_z(p_e, v_e);
+            z = mvnrnd(z, obj.cov_z).';
         end
     end
 end
