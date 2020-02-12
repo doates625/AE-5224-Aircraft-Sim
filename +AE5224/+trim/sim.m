@@ -70,18 +70,18 @@ while sim.t < t_max
     x = sim.x;
     
     % Simulate IMU
-    w_b = gyro.measure(x);
-    a_b = accel.measure(x);
-    u_imu = [w_b; a_b];
+    z_gyr = gyro.measure(x);
+    z_acc = accel.measure(x);
+    u_imu = [z_gyr; z_acc];
     ekf.predict(u_imu);
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
         z_gps = gps.measure(x);
         ekf.correct(z_gps);
-        log.update(z_gps);
+        log.update(z_gyr, z_gps);
     else
-        log.update();
+        log.update(z_gyr);
     end
     
     % Progress tracker

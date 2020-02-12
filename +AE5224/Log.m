@@ -15,13 +15,13 @@ classdef Log < handle
         q_e_act;    % Attitude Earth [quat]
         v_e_act;    % Velocity Earth [m/s]
         w_b_act;    % Angular velocity Body [rad/s]
-        %   w_e_act;    % Air velocity Earth [m/s]
+        w_e_act;    % Air velocity Earth [m/s]
         b_e_act;    % Magnetic field Earth [uT]
         
         % Measurement logs
         p_e_mea;    % Position Earth [m]
         v_e_mea;    % Velocity Earth [m]
-        %   w_b_mea;    % Angular velocity Body [rad/s]
+        w_b_mea;    % Angular velocity Body [rad/s]*
         
         % Estimated state logs
         p_e_est;    % Position Earth [m]
@@ -62,9 +62,11 @@ classdef Log < handle
                 obj.q_e_act = nan(4, n);
                 obj.v_e_act = nan(3, n);
                 obj.w_b_act = nan(3, n);
+                obj.w_e_act = nan(3, n);
                 obj.b_e_act = nan(3, n);
                 obj.p_e_mea = nan(3, n);
                 obj.v_e_mea = nan(3, n);
+                obj.w_b_mea = nan(3, n);
                 obj.p_e_est = nan(3, n);
                 obj.q_e_est = nan(4, n);
                 obj.v_e_est = nan(3, n);
@@ -88,9 +90,10 @@ classdef Log < handle
             end
         end
         
-        function update(obj, z_gps)
-            %UPDATE(obj, z_gps)
+        function update(obj, z_gyr, z_gps)
+            %UPDATE(obj, z_gyr, z_gps)
             %   Add states and measurements to log
+            %   - z_gyr = Gyro reading [opt]
             %   - z_gps = GPS reading [opt]
 
             % Imports
@@ -107,10 +110,14 @@ classdef Log < handle
             obj.q_e_act(:, obj.log_i) = q_e_act_;
             obj.v_e_act(:, obj.log_i) = v_e_act_;
             obj.w_b_act(:, obj.log_i) = w_b_act_;
+            obj.w_e_act(:, obj.log_i) = zeros(3, 1);
             obj.b_e_act(:, obj.log_i) = get_b();
             
             % Measurement logs
-            if nargin > 1
+            if nargin >= 2
+                obj.w_b_mea(:, obj.log_i) = z_gyr;
+            end
+            if nargin >= 3
                 [p_e_mea_, v_e_mea_] = GPS.unpack_z(z_gps);
                 obj.p_e_mea(:, obj.log_i) = p_e_mea_;
                 obj.v_e_mea(:, obj.log_i) = v_e_mea_;
@@ -148,9 +155,11 @@ classdef Log < handle
             obj.q_e_act = obj.q_e_act(:, range_i);
             obj.v_e_act = obj.v_e_act(:, range_i);
             obj.w_b_act = obj.w_b_act(:, range_i);
+            obj.w_e_act = obj.w_e_act(:, range_i);
             obj.b_e_act = obj.b_e_act(:, range_i);
             obj.p_e_mea = obj.p_e_mea(:, range_i);
             obj.v_e_mea = obj.v_e_mea(:, range_i);
+            obj.w_b_mea = obj.w_b_mea(:, range_i);
             obj.q_e_est = obj.q_e_est(:, range_i);
             obj.p_e_est = obj.p_e_est(:, range_i);
             obj.v_e_est = obj.v_e_est(:, range_i);
@@ -165,10 +174,13 @@ classdef Log < handle
         end
         
         function plot(obj)
-            %PLOT(obj) Generates all state plots
+            %PLOT(obj) Generate all state plots
             obj.plot_p_e();
-            obj.plot_v_e();
             obj.plot_q_e();
+            obj.plot_v_e();
+            obj.plot_w_b();
+            obj.plot_w_e();
+            obj.plot_b_e();
             obj.plot_traj();
         end
         
@@ -179,7 +191,7 @@ classdef Log < handle
             for i = 1:3
                 subplot(3, 1, i)
                 hold on, grid on
-                title(['Position-', lbs(i)])
+                title(['Position Earth ', lbs(i)])
                 xlabel('Time [s]')
                 ylabel('Pos [m]')
                 plot(obj.log_t, obj.p_e_act(i, :), 'k--')
@@ -194,6 +206,27 @@ classdef Log < handle
             end
         end
         
+        function plot_q_e(obj)
+            %PLOT_Q_E(obj) Plot attitude Earth
+            figure;
+            lbs = 'WXYZ';
+            for i = 1:4
+                subplot(4, 1, i)
+                hold on, grid on
+                title(['Attitude Earth ', lbs(i)])
+                xlabel('Time [s]')
+                ylabel('Quat')
+                plot(obj.log_t, obj.q_e_act(i, :), 'k--')
+                plot(obj.log_t, obj.q_e_est(i, :), 'b-')
+                plot(obj.log_t, obj.q_e_est(i, :) + 2*obj.q_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.q_e_est(i, :) - 2*obj.q_e_std(i, :), 'b--');
+                legend('Act', 'Est', 'Est+', 'Est-')
+                if i == 3
+                    set(gca, 'YDir','reverse')
+                end
+            end
+        end
+        
         function plot_v_e(obj)
             %PLOT_V_E(obj) Plot velocity Earth
             figure;
@@ -201,7 +234,7 @@ classdef Log < handle
             for i = 1:3
                 subplot(3, 1, i)
                 hold on, grid on
-                title(['Velocity-', lbs(i)])
+                title(['Velocity Earth ', lbs(i)])
                 xlabel('Time [s]')
                 ylabel('Vel [m/s]')
                 plot(obj.log_t, obj.v_e_act(i, :), 'k--');
@@ -216,21 +249,64 @@ classdef Log < handle
             end
         end
         
-        function plot_q_e(obj)
-            %PLOT_Q_E(obj) Plot attitude Earth
+        function plot_w_b(obj)
+            %PLOT_W_B(obj) Plot angular velocity Body
             figure;
-            lbs = 'WXYZ';
-            for i = 1:4
-                subplot(4, 1, i)
+            lbs = 'XYZ';
+            for i = 1:3
+                subplot(3, 1, i)
                 hold on, grid on
-                title(['Attitude-', lbs(i)])
+                title(['Angular Velocity Body ', lbs(i)])
                 xlabel('Time [s]')
-                ylabel('Quat')
-                plot(obj.log_t, obj.q_e_act(i, :), 'k--')
-                plot(obj.log_t, obj.q_e_est(i, :), 'b-')
-                plot(obj.log_t, obj.q_e_est(i, :) + 2*obj.q_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.q_e_est(i, :) - 2*obj.q_e_std(i, :), 'b--');
+                ylabel('Vel [rad/s]')
+                plot(obj.log_t, obj.w_b_act(i, :), 'k--');
+                plot(obj.log_t, obj.w_b_mea(i, :), 'b-');
+                legend('Act', 'Mea')
+                if i == 3
+                    set(gca, 'YDir','reverse')
+                end
+            end
+        end
+        
+        function plot_w_e(obj)
+            %PLOT_W_E(obj) Plot wind velocity Earth
+            figure;
+            lbs = 'XYZ';
+            for i = 1:3
+                subplot(3, 1, i)
+                hold on, grid on
+                title(['Wind Velocity Earth ', lbs(i)])
+                xlabel('Time [s]')
+                ylabel('Vel [m/s]')
+                plot(obj.log_t, obj.w_e_act(i, :), 'k--');
+                plot(obj.log_t, obj.w_e_est(i, :), 'b-');
+                plot(obj.log_t, obj.w_e_est(i, :) + 2*obj.w_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.w_e_est(i, :) - 2*obj.w_e_std(i, :), 'b--');
                 legend('Act', 'Est', 'Est+', 'Est-')
+                if i == 3
+                    set(gca, 'YDir','reverse')
+                end
+            end
+        end
+        
+        function plot_b_e(obj)
+            %PLOT_B_E(obj) Plot magnetic field Earth
+            figure;
+            lbs = 'XYZ';
+            for i = 1:3
+                subplot(3, 1, i)
+                hold on, grid on
+                title(['Magnetic Field Earth ', lbs(i)])
+                xlabel('Time [s]')
+                ylabel('Field [uT]')
+                plot(obj.log_t, obj.b_e_act(i, :), 'k--');
+                plot(obj.log_t, obj.b_e_est(i, :), 'b-');
+                plot(obj.log_t, obj.b_e_est(i, :) + 2*obj.b_e_std(i, :), 'b--');
+                plot(obj.log_t, obj.b_e_est(i, :) - 2*obj.b_e_std(i, :), 'b--');
+                legend('Act', 'Est', 'Est+', 'Est-')
+                if i == 3
+                    set(gca, 'YDir','reverse')
+                end
             end
         end
         
