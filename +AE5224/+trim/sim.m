@@ -1,4 +1,4 @@
-function log_sim = sim(body, x_st, u_st, t_max, del_t)
+function log = sim(body, x_st, u_st, t_max, del_t)
 %log = SIM(body, x_st, u_st, t_max, del_t)
 %   Simulate and plot trim condition
 %   
@@ -8,6 +8,9 @@ function log_sim = sim(body, x_st, u_st, t_max, del_t)
 %   - u_st = Trim control vector
 %   - t_max = Simulation duration [s]
 %   - del_t = Simulation timestep [s]
+%   
+%   Outputs:
+%   - log = Log object [AE5224.Log]
 
 % Imports
 import('AE5224.const.get_b');
@@ -17,14 +20,13 @@ import('AE5224.sensors.Gyro');
 import('AE5224.sensors.Acc');
 import('AE5224.sensors.Mag');
 import('AE5224.sensors.GPS');
-import('AE5224.EKF.EKF');
-import('AE5224.EKF.EKF.pack_x');
-import('AE5224.EKF.Log');
+import('AE5224.EKF');
+import('AE5224.EKF.pack_x');
+import('AE5224.Log');
 import('timing.ProgDisp');
 
 % Create simulator
 sim = Sim(body, x_st, del_t);
-log_sim = AE5224.rigid_body.Log(sim);
 
 % Create IMU
 f_imu = 1 / del_t;
@@ -52,7 +54,9 @@ cov_x(08:10, 08:10) = cov_v;
 cov_x(11:13, 11:13) = cov_v;
 cov_x(14:16, 14:16) = mag.cov_z;
 ekf = EKF(x_est, cov_x, cov_w, cov_a, cov_p, cov_v, del_t);
-log_ekf = AE5224.EKF.Log(sim, ekf);
+
+% Create logger
+log = Log(sim, ekf, t_max);
 
 % Run simulator
 fprintf('Simulating trim...\n');
@@ -67,18 +71,17 @@ while sim.t < t_max
     % Simulate IMU
     w_b = gyro.measure(x);
     a_b = accel.measure(x);
-    u_ekf = [w_b; a_b];
-    ekf.predict(u_ekf);
+    u_imu = [w_b; a_b];
+    ekf.predict(u_imu);
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
-        z_ekf = gps.measure(x);
-        ekf.correct(z_ekf);
+        z_gps = gps.measure(x);
+        ekf.correct(z_gps);
     end
     
     % Update logs
-    log_sim.update();
-    log_ekf.update();
+    log.update();
     prog.update(sim.t / t_max);
     i_sim = i_sim + 1;
 end
@@ -86,10 +89,9 @@ end
 % Plot results
 fprintf('Plotting...\n')
 
-% Trajectories
-figure;
-log_sim.plot_path();
-log_ekf.plot_path();
+% Log post-processing
+log.save();
+log.plot();
 drawnow
 
 end
