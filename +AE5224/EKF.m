@@ -172,7 +172,7 @@ classdef EKF < kalman.EKF
             % Jacobian
             jac_xx = eye(16);
             jac_xx(1:4, 1:4) = Quat(w_b, norm(w_b) * obj.del_t).mat_int();
-            jac_xx(7:9, 8:10) = eye(3) * obj.del_t;
+            jac_xx(5:7, 8:10) = eye(3) * obj.del_t;
             jac_xx(8:10, 1:4) = Quat(q_e).jac_rot(a_b) * obj.del_t;
         end
         
