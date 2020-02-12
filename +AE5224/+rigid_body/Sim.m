@@ -11,22 +11,22 @@ classdef Sim < handle
     end
     
     methods (Access = public)
-        function obj = Sim(model, x, del_t)
-            %obj = SIM(model, x, del_t)
+        function obj = Sim(model, x_init, del_t)
+            %obj = SIM(model, x_init, del_t)
             %   Construct rigid body simulator
             %   
             %   Inputs:
             %   - model = Rigid body model [AE5224.rigid_body.Model]
-            %   - x = Initial state [p_e; q_e; v_e; w_b]
+            %   - x_init = Initial state [p_e; q_e; v_e; w_b]
             %   - del_t = Simulation time delta [s]
             obj.model = model;
             obj.t = 0;
             obj.del_t = del_t;
-            obj.x = x;
+            obj.x = x_init;
         end
         
         function update(obj, u)
-            %UPDATE(obj, F_b, M_b)
+            %UPDATE(obj, u)
             %   Run one simulation loop
             %   
             %   Inputs:
