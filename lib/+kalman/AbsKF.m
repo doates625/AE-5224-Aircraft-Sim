@@ -9,54 +9,57 @@ classdef (Abstract) AbsKF < handle
     %   Author: Dan Oates (WPI Class of 2020)
     
     properties (SetAccess = protected)
-        xh; % State estimate [n x 1]
-        Ex; % State cov [n x n]
-        Eu; % Input cov [m x m]
-        Ez; % Output cov [p x p]
+        x_est;  % State estimate [n x 1]
+        cov_x;  % State cov [n x n]
+        cov_u;  % Input cov [m x m]
+        cov_z;  % Output cov [p x p]
     end
     
     properties (Access = protected)
-        Fx; % State Jacobian [n x n]
-        Fu; % Input Jacobian [n x m]
-        Hx; % Output Jacobian [p x n]
-        In; % Identity matrix [n x n]
+        jac_xx; % State Jacobian [n x n]
+        jac_xu; % Input Jacobian [n x m]
+        jac_zx; % Output Jacobian [p x n]
+        iden_n; % Identity matrix [n x n]
     end
     
     methods (Access = public)
-        function obj = AbsKF(xh, Ex, Eu, Ez)
-            %obj = ABSKF(x, Ex, Eu, Ez)
+        function obj = AbsKF(x_est, cov_x, cov_u, cov_z)
+            %obj = ABSKF(x_est, cov_x, cov_u, cov_z)
             %   Construct Kalman Filter
-            %   - xh = State estimate [n x 1]
-            %   - Ex = State cov [n x n]
-            %   - Eu = Input cov [m x m]
-            %   - Ez = Output cov [p x p]
-            obj.xh = xh;
-            obj.Ex = Ex;
-            obj.Eu = Eu;
-            obj.Ez = Ez;
-            obj.In = eye(length(xh));
+            %   - x_est = State estimate [n x 1]
+            %   - cov_x = State cov [n x n]
+            %   - cov_u = Input cov [m x m]
+            %   - cov_z = Output cov [p x p]
+            obj.x_est = x_est;
+            obj.cov_x = cov_x;
+            obj.cov_u = cov_u;
+            obj.cov_z = cov_z;
+            obj.iden_n = eye(length(x_est));
         end
         
-        function xh = predict(obj, u)
-            %xh = PREDICT(obj, u)
+        function x_est = predict(obj, u)
+            %x_est = PREDICT(obj, u)
             %   Prediction step
             %   - u = Input vector [m x 1]
-            %   - xh = Predicted state [n x 1]
-            obj.xh = obj.predict_x(u);
-            obj.Ex = obj.Fx * obj.Ex * obj.Fx.' + obj.Fu * obj.Eu * obj.Fu.';
-            xh = obj.xh;
+            %   - x_est = Predicted state [n x 1]
+            obj.x_est = obj.predict_x(u);
+            obj.cov_x = ...
+                obj.jac_xx * obj.cov_x * obj.jac_xx.' + ...
+                obj.jac_xu * obj.cov_u * obj.jac_xu.';
+            x_est = obj.x_est;
         end
         
-        function xh = correct(obj, z)
-            %xh = CORRECT(obj, z)
+        function x_est = correct(obj, z)
+            %x_est = CORRECT(obj, z)
             %   Correction step
             %   - z = Output vector [p x 1]
-            %   - xh = Corrected state [n x 1]
-            zh = obj.predict_z();
-            K = (obj.Ex * obj.Hx.') / (obj.Hx * obj.Ex * obj.Hx.' + obj.Ez);
-            obj.xh = obj.xh + K * (z - zh);
-            obj.Ex = (obj.In - K * obj.Hx) * obj.Ex;
-            xh = obj.xh;
+            %   - x_est = Corrected state [n x 1]
+            z_exp = obj.predict_z();
+            K = (obj.cov_x * obj.jac_zx.') / ...
+                (obj.jac_zx * obj.cov_x * obj.jac_zx.' + obj.cov_z);
+            obj.x_est = obj.x_est + K * (z - z_exp);
+            obj.cov_x = (obj.iden_n - K * obj.jac_zx) * obj.cov_x;
+            x_est = obj.x_est;
         end
     end
     

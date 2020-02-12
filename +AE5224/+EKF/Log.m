@@ -28,10 +28,10 @@ classdef Log < handle
             %UPDATE(obj) Add current state estimate to log
             
             % Imports
-            import('AE5224.EKF.unpack_x');
+            import('AE5224.EKF.EKF.unpack_x');
             
             % Function
-            [q_e_, p_e_, v_e_, w_e_, b_e_] = unpack_x(obj.ekf.xh);
+            [q_e_, p_e_, v_e_, w_e_, b_e_] = unpack_x(obj.ekf.x_est);
             obj.t = [obj.t, obj.sim.t];
             obj.q_e = [obj.q_e, q_e_];
             obj.p_e = [obj.p_e, p_e_];

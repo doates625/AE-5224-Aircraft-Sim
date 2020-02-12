@@ -12,15 +12,14 @@ function log_sim = sim(body, x_st, u_st, t_max, del_t)
 % Imports
 import('AE5224.const.get_b');
 import('AE5224.rigid_body.Sim');
-import('AE5224.rigid_body.Model.unpack_x');
-import('AE5224.sensors.Gyroscope');
-import('AE5224.sensors.Accelerometer');
-import('AE5224.sensors.Magnetometer');
+import('AE5224.rigid_body.Model');
+import('AE5224.sensors.Gyro');
+import('AE5224.sensors.Acc');
+import('AE5224.sensors.Mag');
 import('AE5224.sensors.GPS');
-import('AE5224.EKF.get_set_del_t');
 import('AE5224.EKF.EKF');
+import('AE5224.EKF.EKF.pack_x');
 import('AE5224.EKF.Log');
-import('AE5224.EKF.pack_x');
 import('timing.ProgDisp');
 
 % Create simulator
@@ -29,9 +28,9 @@ log_sim = AE5224.rigid_body.Log(sim);
 
 % Create IMU
 f_imu = 1 / del_t;
-gyr = Gyroscope(f_imu);
-acc = Accelerometer(f_imu);
-mag = Magnetometer();
+gyro = Gyro(f_imu);
+accel = Acc(f_imu);
+mag = Mag();
 
 % Create GPS
 f_gps = 1.0;
@@ -39,21 +38,20 @@ gps = GPS();
 n_gps = round(f_gps / sim.del_t);
 
 % Create EKF
-get_set_del_t(del_t);
-[p_e, q_e, v_e, ~] = unpack_x(x_st);
+[p_e, q_e, v_e, ~] = Model.unpack_x(x_st);
 w_e = zeros(3, 1);
 b_e = get_b();
-xh = pack_x(q_e, p_e, v_e, w_e, b_e);
-Ew = gyr.cov_z;
-Ea = acc.cov_z;
-Ep = gps.cov_z(1:3, 1:3);
-Ev = gps.cov_z(4:6, 4:6);
-Ex = zeros(16);
-Ex(05:07, 05:07) = Ep;
-Ex(08:10, 08:10) = Ev;
-Ex(11:13, 11:13) = Ev;
-Ex(14:16, 14:16) = mag.cov_z;
-ekf = EKF(xh, Ex, Ew, Ea, Ep, Ev);
+x_est = pack_x(q_e, p_e, v_e, w_e, b_e);
+cov_w = gyro.cov_z;
+cov_a = accel.cov_z;
+cov_p = gps.cov_z(1:3, 1:3);
+cov_v = gps.cov_z(4:6, 4:6);
+cov_x = zeros(16);
+cov_x(05:07, 05:07) = cov_p;
+cov_x(08:10, 08:10) = cov_v;
+cov_x(11:13, 11:13) = cov_v;
+cov_x(14:16, 14:16) = mag.cov_z;
+ekf = EKF(x_est, cov_x, cov_w, cov_a, cov_p, cov_v, del_t);
 log_ekf = AE5224.EKF.Log(sim, ekf);
 
 % Run simulator
@@ -67,8 +65,8 @@ while sim.t < t_max
     x = sim.x;
     
     % Simulate IMU
-    w_b = gyr.measure(x);
-    a_b = acc.measure(x);
+    w_b = gyro.measure(x);
+    a_b = accel.measure(x);
     u_ekf = [w_b; a_b];
     ekf.predict(u_ekf);
     

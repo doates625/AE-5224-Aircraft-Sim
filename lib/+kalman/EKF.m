@@ -8,51 +8,51 @@ classdef EKF < kalman.AbsKF
     %   Author: Dan Oates (WPI Class of 2020)
     
     properties (Access = protected)
-        f;      % State func [Rn, Rm -> Rn]
-        h;      % Output func [Rn -> Rp]
-        Fx_;    % State Jacobian func [Rn, Rm -> Rnn]
-        Fu_;    % Input Jacobian func [Rn, Rm -> Rnm]
-        Hx_;    % Output Jacobian func [Rn -> Rpn]
+        f;  % State func [Rn, Rm -> Rn]
+        h;  % Output func [Rn -> Rp]
+        fx; % State Jacobian func [Rn, Rm -> Rnn]
+        fu; % Input Jacobian func [Rn, Rm -> Rnm]
+        hx; % Output Jacobian func [Rn -> Rpn]
     end
     
     methods (Access = public)
-        function obj = EKF(xh, Ex, Eu, Ez, f, h, Fx, Fu, Hx)
-            %obj = EKF(xh, Ex, Eu, Ez, f, h)
+        function obj = EKF(x_est, cov_x, cov_u, cov_z, f, h, fx, fu, hx)
+            %obj = EKF(x_est, cov_x, cov_u, cov_z, f, h, fx, fu, hx)
             %   Construct Extended Kalman filter
-            %   - xh = State estimate [n x 1]
-            %   - Ex = State cov [n x n]
-            %   - Eu = Input cov [m x m]
-            %   - Ez = Output cov [p x p]
-            %   - f = State func [R^n, R^m -> R^n]
-            %   - h = Output func [R^n -> R^p]
-            %   - Fx = State Jacobian func [Rn, Rm -> Rnn]
-            %   - Fu = Input Jacobian func [Rn, Rm -> Rnm]
-            %   - Hx = Output Jacobian func [Rn -> Rpn]
-            obj@kalman.AbsKF(xh, Ex, Eu, Ez);
+            %   - x_est = State estimate [n x 1]
+            %   - cov_x = State cov [n x n]
+            %   - cov_u = Input cov [m x m]
+            %   - cov_z = Output cov [p x p]
+            %   - f = State function [Rn, Rm -> Rn]
+            %   - h = Output function [Rn -> Rp]
+            %   - fx = State Jacobian function [Rn, Rm -> Rnn]
+            %   - fu = Input Jacobian function [Rn, Rm -> Rnm]
+            %   - hx = Output Jacobian function [Rn -> Rpn]
+            obj@kalman.AbsKF(x_est, cov_x, cov_u, cov_z);
             obj.f = f;
             obj.h = h;
-            obj.Fx_ = Fx;
-            obj.Fu_ = Fu;
-            obj.Hx_ = Hx;
+            obj.fx = fx;
+            obj.fu = fu;
+            obj.hx = hx;
         end
         
-        function xh = predict(obj, u)
-            %xh = PREDICT(obj, u)
+        function x_est = predict(obj, u)
+            %x_est = PREDICT(obj, u)
             %   Prediction step
             %   - u = Input vector [m x 1]
-            %   - xh = Predicted state [n x 1]
-            obj.Fx = obj.Fx_(obj.xh, u);
-            obj.Fu = obj.Fu_(obj.xh, u);
-            xh = predict@kalman.AbsKF(obj, u);
+            %   - x_est = Predicted state [n x 1]
+            obj.jac_xx = obj.fx(obj.x_est, u);
+            obj.jac_xu = obj.fu(obj.x_est, u);
+            x_est = predict@kalman.AbsKF(obj, u);
         end
         
-        function xh = correct(obj, z)
-            %xh = CORRECT(obj, z)
+        function x_est = correct(obj, z)
+            %x_est = CORRECT(obj, z)
             %   Correction step
             %   - z = Output vector [p x 1]
-            %   - xh = Corrected state [n x 1]
-            obj.Hx = obj.Hx_(obj.xh);
-            xh = correct@kalman.AbsKF(obj, z);
+            %   - x_est = Corrected state [n x 1]
+            obj.jac_zx = obj.hx(obj.x_est);
+            x_est = correct@kalman.AbsKF(obj, z);
         end
     end
     
@@ -62,14 +62,14 @@ classdef EKF < kalman.AbsKF
             %   Predict state
             %   - u = Input vector [m x 1]
             %   - x = Predicted state [n x 1]
-            x = obj.f(obj.xh, u);
+            x = obj.f(obj.x_est, u);
         end
         
         function z = predict_z(obj)
             %z = PREDICT_Z(obj, x)
             %   Predict output
             %   - z = Predicted output [p x 1]
-            z = obj.h(obj.xh);
+            z = obj.h(obj.x_est);
         end
     end
 end
