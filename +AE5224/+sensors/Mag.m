@@ -13,7 +13,7 @@ classdef Mag < AE5224.sensors.Sensor
             
             % Default args
             if nargin < 1
-                cov_b = diag(repmat(10, 3, 1)); % TODO get from sensor
+                cov_b = diag(repmat(10^2, 3, 1)); % TODO get from sensor
             end
             
             % Construction
