@@ -41,8 +41,8 @@ classdef GPS < AE5224.sensors.Sensor
             %   Default values com from textbook
             
             % Default args
-            if nargin < 1, cov_p = diag([6.60, 6.60, 9.20]); end
-            if nargin < 2, cov_v = diag([0.05, 0.05, 0.05]); end
+            if nargin < 1, cov_p = diag([6.60, 6.60, 9.20].^2); end
+            if nargin < 2, cov_v = diag([0.05, 0.05, 0.05].^2); end
             
             % Superconstructor
             zer = zeros(3);
