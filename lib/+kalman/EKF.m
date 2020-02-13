@@ -28,12 +28,14 @@ classdef EKF < kalman.AbsKF
             %   - fx = State Jacobian function [Rn, Rm -> Rnn]
             %   - fu = Input Jacobian function [Rn, Rm -> Rnm]
             %   - hx = Output Jacobian function [Rn -> Rpn]
+            %   For n > 1 outputs, make cov_z, h, and hx [n x 1] cells.
             obj@kalman.AbsKF(x_est, cov_x, cov_u, cov_z);
             obj.f = f;
-            obj.h = h;
+            obj.h = obj.to_cell(h);
             obj.fx = fx;
             obj.fu = fu;
-            obj.hx = hx;
+            obj.hx = obj.to_cell(hx);
+            obj.jac_zx = {};
         end
         
         function x_est = predict(obj, u)
@@ -46,13 +48,15 @@ classdef EKF < kalman.AbsKF
             x_est = predict@kalman.AbsKF(obj, u);
         end
         
-        function x_est = correct(obj, z)
-            %x_est = CORRECT(obj, z)
+        function x_est = correct(obj, z, i)
+            %x_est = CORRECT(obj, z, i)
             %   Correction step
             %   - z = Output vector [p x 1]
+            %   - i = Output index [int, def = 1]
             %   - x_est = Corrected state [n x 1]
-            obj.jac_zx = obj.hx(obj.x_est);
-            x_est = correct@kalman.AbsKF(obj, z);
+            if nargin < 3, i = 1; end
+            obj.jac_zx{i} = obj.hx{i}(obj.x_est);
+            x_est = correct@kalman.AbsKF(obj, z, i);
         end
     end
     
@@ -65,11 +69,12 @@ classdef EKF < kalman.AbsKF
             x = obj.f(obj.x_est, u);
         end
         
-        function z = predict_z(obj)
+        function z = predict_z(obj, i)
             %z = PREDICT_Z(obj, x)
             %   Predict output
+            %   - i = Output index [1...n_out]
             %   - z = Predicted output [p x 1]
-            z = obj.h(obj.x_est);
+            z = obj.h{i}(obj.x_est);
         end
     end
 end

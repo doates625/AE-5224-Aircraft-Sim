@@ -18,10 +18,11 @@ classdef LKF < kalman.AbsKF
             %   - Fx = State matrix [n x n]
             %   - Fu = Input matrix [n x m]
             %   - Hx = Output matrix [p x n]
+            %   For n > 1 outputs, make cov_z and Hx [n x 1] cells.
             obj@kalman.AbsKF(x_est, cov_x, cov_u, cov_z);
             obj.jac_xx = Fx;
             obj.jac_xu = Fu;
-            obj.jac_zx = Hx;
+            obj.jac_zx = obj.to_cell(Hx);
         end
     end
     
@@ -34,11 +35,13 @@ classdef LKF < kalman.AbsKF
             x = obj.jac_xx * obj.x_est + obj.jac_xu * u;
         end
         
-        function z = predict_z(obj)
-            %z = PREDICT_Z(obj, x)
+        function z = predict_z(obj, i)
+            %z = PREDICT_Z(obj, i)
             %   Predict output
+            %   - i = Output index [def = 1]
             %   - z = Predicted output [p x 1]
-            z = obj.jac_zx * obj.x_est;
+            if nargin < 2, i = 1; end
+            z = obj.jac_zx{i} * obj.x_est;
         end
     end
 end
