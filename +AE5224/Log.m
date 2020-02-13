@@ -18,11 +18,6 @@ classdef Log < handle
         w_e_act;    % Air velocity Earth [m/s]
         b_e_act;    % Magnetic field Earth [uT]
         
-        % Measurement logs
-        p_e_mea;    % Position Earth [m]
-        v_e_mea;    % Velocity Earth [m]
-        w_b_mea;    % Angular velocity Body [rad/s]*
-        
         % Estimated state logs
         p_e_est;    % Position Earth [m]
         q_e_est;    % Attitude Earth [quat]
@@ -36,6 +31,12 @@ classdef Log < handle
         v_e_std;    % Velocity Earth [m/s]
         w_e_std;    % Air velocity Earth [m/s]
         b_e_std;    % Magnetic field Earth [uT]
+        
+        % Measurement logs
+        p_e_mea;    % Position Earth [m]
+        v_e_mea;    % Velocity Earth [m]
+        w_b_mea;    % Angular velocity Body [rad/s]*
+        b_e_mea;    % Magnetic field Earth [uT]
     end
     
     methods (Access = public)
@@ -67,6 +68,7 @@ classdef Log < handle
                 obj.p_e_mea = nan(3, n);
                 obj.v_e_mea = nan(3, n);
                 obj.w_b_mea = nan(3, n);
+                obj.b_e_mea = nan(3, n);
                 obj.p_e_est = nan(3, n);
                 obj.q_e_est = nan(4, n);
                 obj.v_e_est = nan(3, n);
@@ -90,10 +92,11 @@ classdef Log < handle
             end
         end
         
-        function update(obj, z_gyr, z_gps)
-            %UPDATE(obj, z_gyr, z_gps)
+        function update(obj, z_gyr, z_mag, z_gps)
+            %UPDATE(obj, z_gyr, z_mag, z_gps)
             %   Add states and measurements to log
             %   - z_gyr = Gyro reading [opt]
+            %   - z_mag = Mag reading [opt]
             %   - z_gps = GPS reading [opt]
 
             % Imports
@@ -101,6 +104,7 @@ classdef Log < handle
             import('AE5224.rigid_body.Model');
             import('AE5224.sensors.GPS');
             import('AE5224.EKF');
+            import('quat.Quat');
             
             % Simulation logs
             [p_e_act_, q_e_act_, v_e_act_, w_b_act_] = ...
@@ -113,16 +117,6 @@ classdef Log < handle
             obj.w_e_act(:, obj.log_i) = zeros(3, 1);
             obj.b_e_act(:, obj.log_i) = get_b();
             
-            % Measurement logs
-            if nargin >= 2
-                obj.w_b_mea(:, obj.log_i) = z_gyr;
-            end
-            if nargin >= 3
-                [p_e_mea_, v_e_mea_] = GPS.unpack_z(z_gps);
-                obj.p_e_mea(:, obj.log_i) = p_e_mea_;
-                obj.v_e_mea(:, obj.log_i) = v_e_mea_;
-            end
-            
             % Kalman filter logs
             [q_e_est_, p_e_est_, v_e_est_, w_e_est_, b_e_est_] = ...
                 EKF.unpack_x(obj.ekf.x_est);
@@ -132,7 +126,7 @@ classdef Log < handle
             obj.w_e_est(:, obj.log_i) = w_e_est_;
             obj.b_e_est(:, obj.log_i) = b_e_est_;
             
-            % Kalman filter stds
+            % Kalman filter std logs
             x_std = sqrt(diag(obj.ekf.cov_x));
             [q_e_std_, p_e_std_, v_e_std_, w_e_std_, b_e_std_] = ...
                 EKF.unpack_x(x_std);
@@ -141,6 +135,19 @@ classdef Log < handle
             obj.v_e_std(:, obj.log_i) = v_e_std_;
             obj.w_e_std(:, obj.log_i) = w_e_std_;
             obj.b_e_std(:, obj.log_i) = b_e_std_;
+            
+            % Measurement logs
+            if nargin >= 2
+                obj.w_b_mea(:, obj.log_i) = z_gyr;
+            end
+            if nargin >= 3
+                obj.b_e_mea(:, obj.log_i) = Quat(q_e_est_).rotate(z_mag);
+            end
+            if nargin >= 4
+                [p_e_mea_, v_e_mea_] = GPS.unpack_z(z_gps);
+                obj.p_e_mea(:, obj.log_i) = p_e_mea_;
+                obj.v_e_mea(:, obj.log_i) = v_e_mea_;
+            end
             
             % Increment log counter
             obj.log_i = obj.log_i + 1;
@@ -160,6 +167,7 @@ classdef Log < handle
             obj.p_e_mea = obj.p_e_mea(:, range_i);
             obj.v_e_mea = obj.v_e_mea(:, range_i);
             obj.w_b_mea = obj.w_b_mea(:, range_i);
+            obj.b_e_mea = obj.b_e_mea(:, range_i);
             obj.q_e_est = obj.q_e_est(:, range_i);
             obj.p_e_est = obj.p_e_est(:, range_i);
             obj.v_e_est = obj.v_e_est(:, range_i);
@@ -230,7 +238,8 @@ classdef Log < handle
             obj.plot_state('Magnetic Field Earth', 'Field [uT]', 'XYZ', {...
                 obj.b_e_act, ...
                 obj.b_e_est, ...
-                obj.b_e_std});
+                obj.b_e_std, ...
+                obj.b_e_mea});
         end
         
         function plot_traj(obj)

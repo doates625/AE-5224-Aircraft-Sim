@@ -21,7 +21,6 @@ import('AE5224.sensors.Acc');
 import('AE5224.sensors.Mag');
 import('AE5224.sensors.GPS');
 import('AE5224.EKF');
-import('AE5224.EKF.pack_x');
 import('AE5224.Log');
 import('timing.ProgDisp');
 
@@ -43,7 +42,7 @@ n_gps = round(f_gps / sim.del_t);
 [p_e, q_e, v_e, ~] = Model.unpack_x(x_st);
 w_e = zeros(3, 1);
 b_e = get_b();
-x_est = pack_x(q_e, p_e, v_e, w_e, b_e);
+x_est = EKF.pack_x(q_e, p_e, v_e, w_e, b_e);
 cov_w = gyro.cov_z;
 cov_a = accel.cov_z;
 cov_v = gps.cov_v;
@@ -54,7 +53,7 @@ cov_x(05:07, 05:07) = cov_p;
 cov_x(08:10, 08:10) = cov_v;
 cov_x(11:13, 11:13) = cov_v;
 cov_x(14:16, 14:16) = cov_b;
-ekf = EKF(x_est, cov_x, cov_w, cov_a, cov_p, cov_v, del_t);
+ekf = EKF(x_est, cov_x, cov_w, cov_a, cov_b, cov_p, cov_v, del_t);
 
 % Create logger
 log = Log(sim, ekf, t_max);
@@ -72,16 +71,18 @@ while sim.t < t_max
     % Simulate IMU
     z_gyr = gyro.measure(x);
     z_acc = accel.measure(x);
-    u_imu = [z_gyr; z_acc];
-    ekf.predict(u_imu);
+    z_mag = mag.measure(x);
+    u_ekf = EKF.pack_u(z_gyr, z_acc);
+    ekf.predict(u_ekf);
+    ekf.correct_mag(z_mag);
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
         z_gps = gps.measure(x);
-        ekf.correct(z_gps);
-        log.update(z_gyr, z_gps);
+        ekf.correct_gps(z_gps);
+        log.update(z_gyr, z_mag, z_gps);
     else
-        log.update(z_gyr);
+        log.update(z_gyr, z_mag);
     end
     
     % Progress tracker

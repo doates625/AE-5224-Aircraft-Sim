@@ -35,7 +35,7 @@ classdef EKF < kalman.AbsKF
             obj.fx = fx;
             obj.fu = fu;
             obj.hx = obj.to_cell(hx);
-            obj.jac_zx = {};
+            obj.jac_zx = cell(obj.n_out, 1);
         end
         
         function x_est = predict(obj, u)
