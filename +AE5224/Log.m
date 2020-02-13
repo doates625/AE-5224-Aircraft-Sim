@@ -36,6 +36,7 @@ classdef Log < handle
         p_e_mea;    % Position Earth [m]
         v_e_mea;    % Velocity Earth [m]
         w_b_mea;    % Angular velocity Body [rad/s]*
+        w_e_mea;    % Air velocity Earth [m/s]
         b_e_mea;    % Magnetic field Earth [uT]
     end
     
@@ -65,10 +66,6 @@ classdef Log < handle
                 obj.w_b_act = nan(3, n);
                 obj.w_e_act = nan(3, n);
                 obj.b_e_act = nan(3, n);
-                obj.p_e_mea = nan(3, n);
-                obj.v_e_mea = nan(3, n);
-                obj.w_b_mea = nan(3, n);
-                obj.b_e_mea = nan(3, n);
                 obj.p_e_est = nan(3, n);
                 obj.q_e_est = nan(4, n);
                 obj.v_e_est = nan(3, n);
@@ -79,6 +76,11 @@ classdef Log < handle
                 obj.v_e_std = nan(3, n);
                 obj.w_e_std = nan(3, n);
                 obj.b_e_std = nan(3, n);
+                obj.p_e_mea = nan(3, n);
+                obj.v_e_mea = nan(3, n);
+                obj.w_b_mea = nan(3, n);
+                obj.w_e_mea = nan(3, n);
+                obj.b_e_mea = nan(3, n);
                 obj.log_i = 1;
                 
                 % Initial update
@@ -92,11 +94,12 @@ classdef Log < handle
             end
         end
         
-        function update(obj, z_gyr, z_mag, z_gps)
+        function update(obj, z_gyr, z_mag, z_air, z_gps)
             %UPDATE(obj, z_gyr, z_mag, z_gps)
             %   Add states and measurements to log
             %   - z_gyr = Gyro reading [opt]
             %   - z_mag = Mag reading [opt]
+            %   - z_air = Airspeed reading [opt]
             %   - z_gps = GPS reading [opt]
 
             % Imports
@@ -144,6 +147,11 @@ classdef Log < handle
                 obj.b_e_mea(:, obj.log_i) = Quat(q_e_est_).rotate(z_mag);
             end
             if nargin >= 4
+                obj.w_e_mea(:, obj.log_i) = ...
+                    obj.v_e_est(:, obj.log_i) - ...
+                    Quat(q_e_est_).rotate(z_air);
+            end
+            if nargin >= 5
                 [p_e_mea_, v_e_mea_] = GPS.unpack_z(z_gps);
                 obj.p_e_mea(:, obj.log_i) = p_e_mea_;
                 obj.v_e_mea(:, obj.log_i) = v_e_mea_;
@@ -164,10 +172,6 @@ classdef Log < handle
             obj.w_b_act = obj.w_b_act(:, range_i);
             obj.w_e_act = obj.w_e_act(:, range_i);
             obj.b_e_act = obj.b_e_act(:, range_i);
-            obj.p_e_mea = obj.p_e_mea(:, range_i);
-            obj.v_e_mea = obj.v_e_mea(:, range_i);
-            obj.w_b_mea = obj.w_b_mea(:, range_i);
-            obj.b_e_mea = obj.b_e_mea(:, range_i);
             obj.q_e_est = obj.q_e_est(:, range_i);
             obj.p_e_est = obj.p_e_est(:, range_i);
             obj.v_e_est = obj.v_e_est(:, range_i);
@@ -178,6 +182,11 @@ classdef Log < handle
             obj.v_e_std = obj.v_e_std(:, range_i);
             obj.w_e_std = obj.w_e_std(:, range_i);
             obj.b_e_std = obj.b_e_std(:, range_i);
+            obj.p_e_mea = obj.p_e_mea(:, range_i);
+            obj.v_e_mea = obj.v_e_mea(:, range_i);
+            obj.w_b_mea = obj.w_b_mea(:, range_i);
+            obj.w_e_mea = obj.w_e_mea(:, range_i);
+            obj.b_e_mea = obj.b_e_mea(:, range_i);
             save('log.mat', 'obj');
         end
         
@@ -230,7 +239,8 @@ classdef Log < handle
             obj.plot_state('Wind Velocity Earth', 'Vel [m/s]', 'XYZ', {...
                 obj.w_e_act, ...
                 obj.w_e_est, ...
-                obj.w_e_std});
+                obj.w_e_std, ...
+                obj.w_e_mea});
         end
         
         function plot_b_e(obj)

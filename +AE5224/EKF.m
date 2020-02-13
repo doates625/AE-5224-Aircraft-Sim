@@ -67,47 +67,61 @@ classdef EKF < kalman.EKF
     end
     
     methods (Access = public)
-        function obj = EKF(x_est, cov_x, cov_w, cov_a, cov_b, cov_p, cov_v, del_t)
-            %obj = EKF(x_est, cov_x, cov_w, cov_a, cov_b, cov_p, cov_v, del_t)
+        function obj = EKF(x_est, cov_x, ...
+                cov_w_b, cov_a_b, cov_b_b, cov_v_a, cov_p_e, cov_v_e, del_t)
+            %obj = EKF(x_est, cov_x, ...
+            %       cov_w_b, cov_a_b, cov_b_b, cov_v_a, cov_p_e, cov_v_e, del_t)
             %   Construct UAV EKF
             %   - x_est = Init state estimate [16 x 1]
             %   - cov_x = Init state cov [16 x 16]
-            %   - cov_w = Angular velocity cov [3 x 3]
-            %   - cov_a = Acceleration cov [3 x 3]
-            %   - cov_b = Magnetic field cov [3 x 3]
-            %   - cov_p = Position cov [3 x 3]
-            %   - cov_v = Velocity cov [3 x 3]
+            %   - cov_w_b = Angular velocity cov [3 x 3]
+            %   - cov_a_b = Acceleration cov [3 x 3]
+            %   - cov_b_b = Magnetic field cov [3 x 3]
+            %   - cov_v_a = Airspeed cov [3 x 3]
+            %   - cov_p_e = GPS position cov [3 x 3]
+            %   - cov_v_e = GPS velocity cov [3 x 3]
             %   - del_t = Filter time delta [s]
             
             % Input-output covariances
             cov_u = zeros(6);
-            cov_u(1:3, 1:3) = cov_w;
-            cov_u(4:6, 4:6) = cov_a;
-            cov_z_mag = cov_b;
+            cov_u(1:3, 1:3) = cov_w_b;
+            cov_u(4:6, 4:6) = cov_a_b;
+            cov_z_mag = cov_b_b;
+            cov_z_air = cov_v_a;
             cov_z_gps = zeros(6);
-            cov_z_gps(1:3, 1:3) = cov_p;
-            cov_z_gps(4:6, 4:6) = cov_v;
-            cov_z = {cov_z_mag; cov_z_gps};
+            cov_z_gps(1:3, 1:3) = cov_p_e;
+            cov_z_gps(4:6, 4:6) = cov_v_e;
+            cov_z = {cov_z_mag; cov_z_air; cov_z_gps};
             
             % EKF constructor
             f = @(x, u) AE5224.EKF.f_(x, u, del_t);
             h_mag = @(x) AE5224.EKF.h_mag_(x);
+            h_air = @(x) AE5224.EKF.h_air_(x);
             h_gps = @(x) AE5224.EKF.h_gps_(x);
-            h = {h_mag; h_gps};
+            h = {h_mag; h_air; h_gps};
             fx = @(x, u) AE5224.EKF.fx_(x, u, del_t);
             fu = @(x, u) AE5224.EKF.fu_(x, u, del_t);
             hx_mag = @(x) AE5224.EKF.hx_mag_(x);
+            hx_air = @(x) AE5224.EKF.hx_air_(x);
             hx_gps = @(x) AE5224.EKF.hx_gps_(x);
-            hx = {hx_mag; hx_gps};
+            hx = {hx_mag; hx_air; hx_gps};
             obj@kalman.EKF(x_est, cov_x, cov_u, cov_z, f, h, fx, fu, hx);
         end
         
         function x_est = correct_mag(obj, z)
             %x_est = CORRECT_MAG(obj, z)
-            %   Magnetometer correction steo
+            %   Magnetometer correction step
             %   - z = Magnetometer outputs [b_bx; b_by; b_bz]
-            %   - z_est = Corrected state [16 x 1]
+            %   - x_est = Corrected state [16 x 1]
             x_est = obj.correct(z, 1);
+        end
+        
+        function x_est = correct_air(obj, z)
+            %x_est = CORRECT_AIR(obj, z)
+            %   Airspeed correction step
+            %   - z = Airspeed outputs [v_ax; v_ay; v_az]
+            %   - x_est = Corrected state [16 x 1]
+            x_est = obj.correct(z, 2);
         end
         
         function x_est = correct_gps(obj, z)
@@ -115,7 +129,7 @@ classdef EKF < kalman.EKF
             %   GPS correction step
             %   - z = GPS outputs [p_e; v_e]
             %   - x_est = Corrected state [16 x 1]
-            x_est = obj.correct(z, 2);
+            x_est = obj.correct(z, 3);
         end
         
         function x_est = correct(obj, z, i)
@@ -185,6 +199,21 @@ classdef EKF < kalman.EKF
             % Magnetometer output
             [q_e, ~, ~, ~, b_e] = unpack_x(x);
             z = Quat(q_e).inv().rotate(b_e);
+        end
+        
+        function z = h_air_(x)
+            %z = H_AIR_(x)
+            %   Airspeed output function
+            %   - x = State vector
+            %   - z = Output vector [v_ax; v_ay; v_az]
+            
+            % Imports
+            import('AE5224.EKF.unpack_x');
+            import('quat.Quat');
+            
+            % Airspeed output
+            [q_e, ~, v_e, w_e, ~] = unpack_x(x);
+            z = Quat(q_e).inv().rotate(v_e - w_e);
         end
         
         function z = h_gps_(x)
@@ -286,8 +315,30 @@ classdef EKF < kalman.EKF
             
             % Output Jacobain
             jac_zx = zeros(3, 16);
-            jac_zx(:, 1:4) = q_e_inv.jac_rot(b_e);
+            jac_zx(:, 01:04) = q_e_inv.jac_rot(b_e);
             jac_zx(:, 14:16) = q_e_inv.mat_rot();
+        end
+        
+        function jac_zx = hx_air_(x)
+            %jac_zx = HX_AIR_(x)
+            %   Get airspeed output Jacobian
+            %   - x = State vector
+            %   - jac_zx = Output Jacobian
+
+            % Imports
+            import('AE5224.EKF.unpack_x');
+            import('quat.Quat');
+            
+            % Unpack state vector
+            [q_e, ~, v_e, w_e, ~] = unpack_x(x);
+            q_e_inv = Quat(q_e).inv();
+            R_eb = q_e_inv.mat_rot();
+            
+            % Output Jacobain
+            jac_zx = zeros(3, 16);
+            jac_zx(:, 01:04) = q_e_inv.jac_rot(v_e - w_e);
+            jac_zx(:, 08:10) = +R_eb;
+            jac_zx(:, 11:13) = -R_eb;
         end
         
         function jac_zx = hx_gps_(~)
