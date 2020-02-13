@@ -186,128 +186,51 @@ classdef Log < handle
         
         function plot_p_e(obj)
             %PLOT_P_E(obj) Plot position Earth
-            figure;
-            lbs = 'XYZ';
-            for i = 1:3
-                subplot(3, 1, i)
-                hold on, grid on
-                title(['Position Earth ', lbs(i)])
-                xlabel('Time [s]')
-                ylabel('Pos [m]')
-                plot(obj.log_t, obj.p_e_act(i, :), 'k--')
-                plot(obj.log_t, obj.p_e_est(i, :), 'b-')
-                plot(obj.log_t, obj.p_e_est(i, :) + 2*obj.p_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.p_e_est(i, :) - 2*obj.p_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.p_e_mea(i, :), 'rx')
-                legend('Act', 'Est', 'Est+', 'Est-', 'Mea')
-                if i == 3
-                    set(gca, 'YDir','reverse')
-                end
-            end
+            obj.plot_state('Position Earth', 'Pos [m]', 'XYZ', {...
+                obj.p_e_act, ...
+                obj.p_e_est, ...
+                obj.p_e_std, ...
+                obj.p_e_mea});
         end
         
         function plot_q_e(obj)
             %PLOT_Q_E(obj) Plot attitude Earth
-            figure;
-            lbs = 'WXYZ';
-            for i = 1:4
-                subplot(4, 1, i)
-                hold on, grid on
-                title(['Attitude Earth ', lbs(i)])
-                xlabel('Time [s]')
-                ylabel('Quat')
-                plot(obj.log_t, obj.q_e_act(i, :), 'k--')
-                plot(obj.log_t, obj.q_e_est(i, :), 'b-')
-                plot(obj.log_t, obj.q_e_est(i, :) + 2*obj.q_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.q_e_est(i, :) - 2*obj.q_e_std(i, :), 'b--');
-                legend('Act', 'Est', 'Est+', 'Est-')
-                if i == 3
-                    set(gca, 'YDir','reverse')
-                end
-            end
+            obj.plot_state('Attitude Earth', 'Quat', 'WXYZ', {...
+                obj.q_e_act, ...
+                obj.q_e_est, ...
+                obj.q_e_std});
         end
         
         function plot_v_e(obj)
             %PLOT_V_E(obj) Plot velocity Earth
-            figure;
-            lbs = 'XYZ';
-            for i = 1:3
-                subplot(3, 1, i)
-                hold on, grid on
-                title(['Velocity Earth ', lbs(i)])
-                xlabel('Time [s]')
-                ylabel('Vel [m/s]')
-                plot(obj.log_t, obj.v_e_act(i, :), 'k--');
-                plot(obj.log_t, obj.v_e_est(i, :), 'b-');
-                plot(obj.log_t, obj.v_e_est(i, :) + 2*obj.v_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.v_e_est(i, :) - 2*obj.v_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.v_e_mea(i, :), 'rx');
-                legend('Act', 'Est', 'Est+', 'Est-', 'Mea')
-                if i == 3
-                    set(gca, 'YDir','reverse')
-                end
-            end
+            obj.plot_state('Velocity Earth', 'Vel [m/s]', 'XYZ', {...
+                obj.v_e_act, ...
+                obj.v_e_est, ...
+                obj.v_e_std, ...
+                obj.v_e_mea});
         end
         
         function plot_w_b(obj)
             %PLOT_W_B(obj) Plot angular velocity Body
-            figure;
-            lbs = 'XYZ';
-            for i = 1:3
-                subplot(3, 1, i)
-                hold on, grid on
-                title(['Angular Velocity Body ', lbs(i)])
-                xlabel('Time [s]')
-                ylabel('Vel [rad/s]')
-                plot(obj.log_t, obj.w_b_act(i, :), 'k--');
-                plot(obj.log_t, obj.w_b_mea(i, :), 'b-');
-                legend('Act', 'Mea')
-                if i == 3
-                    set(gca, 'YDir','reverse')
-                end
-            end
+            obj.plot_state('Angular Velocity Body', 'Vel [rad/s]', 'XYZ', {...
+                obj.w_b_act, ...
+                obj.w_b_mea});
         end
         
         function plot_w_e(obj)
             %PLOT_W_E(obj) Plot wind velocity Earth
-            figure;
-            lbs = 'XYZ';
-            for i = 1:3
-                subplot(3, 1, i)
-                hold on, grid on
-                title(['Wind Velocity Earth ', lbs(i)])
-                xlabel('Time [s]')
-                ylabel('Vel [m/s]')
-                plot(obj.log_t, obj.w_e_act(i, :), 'k--');
-                plot(obj.log_t, obj.w_e_est(i, :), 'b-');
-                plot(obj.log_t, obj.w_e_est(i, :) + 2*obj.w_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.w_e_est(i, :) - 2*obj.w_e_std(i, :), 'b--');
-                legend('Act', 'Est', 'Est+', 'Est-')
-                if i == 3
-                    set(gca, 'YDir','reverse')
-                end
-            end
+            obj.plot_state('Wind Velocity Earth', 'Vel [m/s]', 'XYZ', {...
+                obj.w_e_act, ...
+                obj.w_e_est, ...
+                obj.w_e_std});
         end
         
         function plot_b_e(obj)
             %PLOT_B_E(obj) Plot magnetic field Earth
-            figure;
-            lbs = 'XYZ';
-            for i = 1:3
-                subplot(3, 1, i)
-                hold on, grid on
-                title(['Magnetic Field Earth ', lbs(i)])
-                xlabel('Time [s]')
-                ylabel('Field [uT]')
-                plot(obj.log_t, obj.b_e_act(i, :), 'k--');
-                plot(obj.log_t, obj.b_e_est(i, :), 'b-');
-                plot(obj.log_t, obj.b_e_est(i, :) + 2*obj.b_e_std(i, :), 'b--');
-                plot(obj.log_t, obj.b_e_est(i, :) - 2*obj.b_e_std(i, :), 'b--');
-                legend('Act', 'Est', 'Est+', 'Est-')
-                if i == 3
-                    set(gca, 'YDir','reverse')
-                end
-            end
+            obj.plot_state('Magnetic Field Earth', 'Field [uT]', 'XYZ', {...
+                obj.b_e_act, ...
+                obj.b_e_est, ...
+                obj.b_e_std});
         end
         
         function plot_traj(obj)
@@ -374,6 +297,70 @@ classdef Log < handle
             view(-105, +25)
             axis equal
             camproj perspective
+        end
+    end
+    
+    methods (Access = protected)
+        function plot_state(obj, title_, ylabel_, axes_, x_logs)
+            %PLOT_STATE(obj, title_, label_, axes_, x_logs);
+            %   Plot log data
+            %   
+            %   Inputs:
+            %   - title_ = Plot title
+            %   - ylabel_ = Vertical axis label
+            %   - axes_ = Axis letters ['char']
+            %   - x_logs = Log cell array
+            %   
+            %   Log options:
+            %   - {x_act, x_est, x_std, x_mea}
+            %   - {x_act, x_est, x_std}
+            %   - {x_act, x_mea}
+            
+            % Unpack logs
+            n_logs = length(x_logs);
+            x_act = x_logs{1};
+            switch n_logs
+                case 2
+                    x_mea = x_logs{2};
+                case 3
+                    x_est = x_logs{2};
+                    x_std = x_logs{3};
+                case 4
+                    x_est = x_logs{2};
+                    x_std = x_logs{3};
+                    x_mea = x_logs{4};
+            end
+            
+            % Generate plots
+            figure;
+            n = length(axes_);
+            for i = 1:n
+                % Format subplot
+                subplot(n, 1, i);
+                hold on, grid on
+                title([title_ ' ' axes_(i)])
+                xlabel('Time [s]')
+                ylabel(ylabel_)
+                
+                % Generate plots
+                if n_logs == 2 || n_logs == 4
+                    if n_logs == 2, ls = 'b-'; end
+                    if n_logs == 4, ls = 'rx'; end
+                    plot(obj.log_t, x_mea(i, :), ls, 'DisplayName', 'Mea');
+                end
+                if n_logs >= 3
+                    plot(obj.log_t, x_est(i, :), 'b-', 'DisplayName', 'Est');
+                    plot(obj.log_t, x_est(i, :) + 2*x_std(i, :), 'b--', ...
+                        'DisplayName', 'Est+');
+                    plot(obj.log_t, x_est(i, :) - 2*x_std(i, :), 'b--', ...
+                        'DisplayName', 'Est-');
+                end
+                plot(obj.log_t, x_act(i, :), 'k--', 'DisplayName', 'Act');
+                legend();
+            end
+            
+            % Flip z-axis
+            set(gca, 'YDir','reverse')
         end
     end
 end
