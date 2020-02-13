@@ -83,7 +83,7 @@ while sim.t < t_max
     
     % Simulate airspeed sensor
     z_air = air.measure(x);
-    % ekf.correct_air(z_air);
+    % ekf.correct_air(z_air);   % TODO debug instability
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
