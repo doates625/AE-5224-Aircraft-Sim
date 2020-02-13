@@ -35,9 +35,10 @@ classdef Air < AE5224.sensors.Sensor
             import('AE5224.rigid_body.Model.unpack_x');
             import('quat.Quat');
             
-            % Function
+            % Measurement sim
             [~, q_e, v_e, ~] = unpack_x(x);
-            v_b = Quat(q_e).inv().rotate(v_e);
+            w_e = zeros(3, 1);
+            v_b = Quat(q_e).inv().rotate(v_e - w_e);
             z = mvnrnd(v_b, obj.cov_z).';
         end
     end
