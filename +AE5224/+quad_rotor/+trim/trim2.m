@@ -11,8 +11,8 @@ function log = trim2(t_max, del_t)
 %   - Airspeed V* = 10m/s
 
 % Imports
-import('AE5224.trim.Trim');
 import('AE5224.quad_rotor.trim.test');
+import('AE5224.Trim');
 
 % Default args
 if nargin < 1, t_max = 10.0; end

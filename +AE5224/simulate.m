@@ -1,11 +1,11 @@
-function log = sim(body, x_st, u_st, t_max, del_t)
-%log = SIM(body, x_st, u_st, t_max, del_t)
-%   Simulate and plot trim condition
+function log = sim(body, ctrl, x_st, t_max, del_t)
+%log = SIM(body, ctrl, x_st, t_max, del_t)
+%   Simulate and plot UAV flight
 %   
 %   Inputs:
 %   - body = Aircraft model [AE5224.rigid_body.Body]
+%   - ctrl = Control system [AE5224.control.Controller]
 %   - x_st = Trim state [p_e; q_e; v_e; w_b]
-%   - u_st = Trim control vector
 %   - t_max = Simulation duration [s]
 %   - del_t = Simulation timestep [s]
 %   
@@ -69,30 +69,33 @@ prog = ProgDisp();
 prog.start();
 i_sim = 1;
 while sim.t < t_max
-    % Simulate dynamics
-    sim.update(u_st)
-    x = sim.x;
     
     % Simulate IMU
-    z_gyr = gyro.measure(x);
-    z_acc = accel.measure(x);
-    z_mag = mag.measure(x);
+    z_gyr = gyro.measure(sim.x);
+    z_acc = accel.measure(sim.x);
+    z_mag = mag.measure(sim.x);
     u_ekf = EKF.pack_u(z_gyr, z_acc);
     ekf.predict(u_ekf);
     ekf.correct_mag(z_mag);
     
     % Simulate airspeed sensor
-    z_air = air.measure(x);
+    z_air = air.measure(sim.x);
     % ekf.correct_air(z_air);   % TODO debug instability
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
-        z_gps = gps.measure(x);
+        z_gps = gps.measure(sim.x);
         ekf.correct_gps(z_gps);
         log.update(z_gyr, z_mag, z_air, z_gps);
     else
         log.update(z_gyr, z_mag, z_air);
     end
+    
+    % Simulate dynamics and control
+    [q_e, p_e, v_e, ~, ~] = EKF.unpack_x(ekf.x_est);
+    x_hat = Model.pack_x(p_e, q_e, v_e, z_gyr);
+    u = ctrl.update(x_hat);
+    sim.update(u);
     
     % Progress tracker
     prog.update(sim.t / t_max);

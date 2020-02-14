@@ -13,8 +13,8 @@ function log = trim3(t_max, del_t)
 %   - Init altitude h = 100m
 
 % Imports
-import('AE5224.trim.Trim');
 import('AE5224.fixed_wing.trim.test');
+import('AE5224.Trim');
 
 % Default args
 if nargin < 1, t_max = 120.0; end

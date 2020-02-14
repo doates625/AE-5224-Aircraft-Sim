@@ -14,7 +14,8 @@ clc
 % Imports
 import('AE5224.fixed_wing.Model');
 import('AE5224.fixed_wing.trim.solve');
-import('AE5224.trim.sim');
+import('AE5224.control.OpenLoop');
+import('AE5224.simulate');
 
 % Default args
 if nargin < 1, t_max = 10.0; end
@@ -47,7 +48,8 @@ disp_model(A_lat, B_lat, x_lat, u_lat);
 %}
 
 % Simulate trim
-log = sim(model, x_st, u_st, t_max, del_t);
+ctrl = OpenLoop(u_st);
+log = simulate(model, ctrl, x_st, t_max, del_t);
 
 function disp_model(A, B, x, u)
     %DISP_MODEL(A, B, x, u)

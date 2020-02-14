@@ -14,7 +14,8 @@ clc
 % Imports
 import('AE5224.quad_rotor.Model');
 import('AE5224.quad_rotor.trim.solve');
-import('AE5224.trim.sim');
+import('AE5224.control.OpenLoop');
+import('AE5224.simulate');
 
 % Default args
 if nargin < 1, t_max = 10.0; end
@@ -29,6 +30,7 @@ model = Model();
 [x_st, u_st] = solve(model, trim);
 
 % Simulate trim
-log = sim(model, x_st, u_st, t_max, del_t);
+ctrl = OpenLoop(u_st);
+log = simulate(model, ctrl, x_st, t_max, del_t);
 
 end
