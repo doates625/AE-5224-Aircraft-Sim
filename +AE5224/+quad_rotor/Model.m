@@ -11,6 +11,8 @@ classdef Model < AE5224.rigid_body.Model
         L;      % CM-to-prop distance [m]
         k_F;    % Motor force constant [N/rpm^2]
         k_M;    % Motor torque constant [N*m/rpm^2]
+        u_min;  % Min controls vector
+        u_max;  % Max controls vector
     end
     
     methods (Access = public)
@@ -29,8 +31,10 @@ classdef Model < AE5224.rigid_body.Model
             
             % Quadrotor constants
             obj.L = 0.175;
-            obj.k_F = 1.50e-09;
-            obj.k_M = 6.11e-08;
+            obj.k_F = 6.11e-08;
+            obj.k_M = 1.50e-09;
+            obj.u_min = zeros(4, 1);
+            obj.u_max = 9000 * ones(4, 1);
         end
         
         function [F_b, M_b] = forces(obj, x, u)
@@ -39,7 +43,7 @@ classdef Model < AE5224.rigid_body.Model
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
-            %   - u = Input vector [w_1; w_2; w_3; w_4; va_b]
+            %   - u = Input vector [w_p1; w_p2; w_p3; w_p4; va_b]
             %   
             %   Outputs:
             %   - F_b = Net force vector [N]

@@ -30,7 +30,7 @@ model = Model();
 [x_st, u_st] = solve(model, trim);
 
 % Simulate trim
-ctrl = OpenLoop(u_st);
+ctrl = OpenLoop(u_st, model.u_min, model.u_max);
 log = simulate(model, ctrl, x_st, t_max, del_t);
 
 end

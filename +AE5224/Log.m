@@ -42,59 +42,43 @@ classdef Log < handle
     end
     
     methods (Access = public)
-        function obj = Log(varargin)
-            %LOG Construct simulation log
-            %   
-            %   obj = LOG(sim_body, sim_wind, ekf, t_max) Make new log
+        function obj = Log(sim_body, sim_wind, ekf, n)
+            %obj = LOG(sim_body, sim_wind, ekf, n)
+            %   Construct new log
             %   - sim_body = Body simulator [AE5224.rigid_body.Sim]
             %   - sim_wind = Wind simulator [AE5224.Wind]
             %   - ekf = Kalman filter [AE5224.EKF]
-            %   - t_max = Simulation duration [s]
-            %   
-            %   obj = LOG(file) Load log from file
-            %   - file = Mat file name ['*.mat']
-            if nargin == 4
-                % Parse arguments
-                obj.sim_body = varargin{1};
-                obj.sim_wind = varargin{2};
-                obj.ekf = varargin{3};
-                t_max = varargin{4};
-                
-                % Pre-allocate logs
-                n = ceil(t_max / obj.sim_body.del_t) + 1;
-                obj.log_t = nan(1, n);
-                obj.p_e_act = nan(3, n);
-                obj.q_e_act = nan(4, n);
-                obj.vb_e_act = nan(3, n);
-                obj.w_b_act = nan(3, n);
-                obj.va_e_act = nan(3, n);
-                obj.b_e_act = nan(3, n);
-                obj.p_e_est = nan(3, n);
-                obj.q_e_est = nan(4, n);
-                obj.vb_e_est = nan(3, n);
-                obj.va_e_est = nan(3, n);
-                obj.b_e_est = nan(3, n);
-                obj.p_e_std = nan(3, n);
-                obj.q_e_std = nan(4, n);
-                obj.vb_e_std = nan(3, n);
-                obj.va_e_std = nan(3, n);
-                obj.b_e_std = nan(3, n);
-                obj.p_e_mea = nan(3, n);
-                obj.vb_e_mea = nan(3, n);
-                obj.w_b_mea = nan(3, n);
-                obj.va_e_mea = nan(3, n);
-                obj.b_e_mea = nan(3, n);
-                obj.log_i = 1;
-                
-                % Initial update
-                obj.update();
-            elseif nargin == 1
-                % Load from file
-                file = load(varargin{1});
-                obj = file.obj;
-            else
-                error('Invalid nargin.');
-            end
+            %   - n = Log pre-allocation length [cnts]
+            
+            % Copy args
+            obj.sim_body = sim_body;
+            obj.sim_wind = sim_wind;
+            obj.ekf = ekf;
+            
+            % Pre-allocate logs
+            obj.log_t = nan(1, n);
+            obj.p_e_act = nan(3, n);
+            obj.q_e_act = nan(4, n);
+            obj.vb_e_act = nan(3, n);
+            obj.w_b_act = nan(3, n);
+            obj.va_e_act = nan(3, n);
+            obj.b_e_act = nan(3, n);
+            obj.p_e_est = nan(3, n);
+            obj.q_e_est = nan(4, n);
+            obj.vb_e_est = nan(3, n);
+            obj.va_e_est = nan(3, n);
+            obj.b_e_est = nan(3, n);
+            obj.p_e_std = nan(3, n);
+            obj.q_e_std = nan(4, n);
+            obj.vb_e_std = nan(3, n);
+            obj.va_e_std = nan(3, n);
+            obj.b_e_std = nan(3, n);
+            obj.p_e_mea = nan(3, n);
+            obj.vb_e_mea = nan(3, n);
+            obj.w_b_mea = nan(3, n);
+            obj.va_e_mea = nan(3, n);
+            obj.b_e_mea = nan(3, n);
+            obj.log_i = 1;
         end
         
         function update(obj, z_gyr, z_mag, z_air, z_gps)
@@ -164,35 +148,6 @@ classdef Log < handle
             
             % Increment log counter
             obj.log_i = obj.log_i + 1;
-        end
-        
-        function save(obj)
-            %SAVE(obj) Trim and save object to 'log.mat'
-            obj.log_i = obj.log_i - 2;
-            range_i = 1:obj.log_i;
-            obj.log_t = obj.log_t(range_i);
-            obj.p_e_act = obj.p_e_act(:, range_i);
-            obj.q_e_act = obj.q_e_act(:, range_i);
-            obj.vb_e_act = obj.vb_e_act(:, range_i);
-            obj.va_e_act = obj.va_e_act(:, range_i);
-            obj.w_b_act = obj.w_b_act(:, range_i);
-            obj.b_e_act = obj.b_e_act(:, range_i);
-            obj.q_e_est = obj.q_e_est(:, range_i);
-            obj.p_e_est = obj.p_e_est(:, range_i);
-            obj.vb_e_est = obj.vb_e_est(:, range_i);
-            obj.va_e_est = obj.va_e_est(:, range_i);
-            obj.b_e_est = obj.b_e_est(:, range_i);
-            obj.p_e_std = obj.p_e_std(:, range_i);
-            obj.q_e_std = obj.q_e_std(:, range_i);
-            obj.vb_e_std = obj.vb_e_std(:, range_i);
-            obj.va_e_std = obj.va_e_std(:, range_i);
-            obj.b_e_std = obj.b_e_std(:, range_i);
-            obj.p_e_mea = obj.p_e_mea(:, range_i);
-            obj.vb_e_mea = obj.vb_e_mea(:, range_i);
-            obj.va_e_mea = obj.va_e_mea(:, range_i);
-            obj.w_b_mea = obj.w_b_mea(:, range_i);
-            obj.b_e_mea = obj.b_e_mea(:, range_i);
-            save('log.mat', 'obj');
         end
         
         function plot(obj)

@@ -64,6 +64,10 @@ classdef Model < AE5224.rigid_body.Model
         C_Mz_wz;    % Angle rate z
         C_Mz_da;    % Aileron
         C_Mz_dr;    % Rudder
+        
+        % Control limits
+        u_min;      % Min controls vector
+        u_max;      % Max controls vector
     end
     
     methods (Access = public)
@@ -139,6 +143,10 @@ classdef Model < AE5224.rigid_body.Model
             obj.C_Mz_wz = -0.35;    % Angle rate z
             obj.C_Mz_da = 0.08;     % Aileron
             obj.C_Mz_dr = -0.032;   % Rudder
+            
+            % Control limits
+            obj.u_min = [-deg2rad(20)*ones(3, 1); 0];
+            obj.u_max = [+deg2rad(20)*ones(3, 1); 1];
         end
         
         function [F_b, M_b] = forces(obj, x, u)

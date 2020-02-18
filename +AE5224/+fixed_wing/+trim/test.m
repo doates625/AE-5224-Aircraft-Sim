@@ -48,7 +48,7 @@ disp_model(A_lat, B_lat, x_lat, u_lat);
 %}
 
 % Simulate trim
-ctrl = OpenLoop(u_st);
+ctrl = OpenLoop(u_st, model.u_min, model.u_max);
 log = simulate(model, ctrl, x_st, t_max, del_t);
 
 function disp_model(A, B, x, u)
