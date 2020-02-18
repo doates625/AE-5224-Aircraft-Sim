@@ -20,23 +20,38 @@ classdef Controller < AE5224.control.Controller
             
             % Imports
             import('AE5224.fixed_wing.control.make_lqr');
+            import('AE5224.rigid_body.Model.unpack_x');
+            import('quat.Quat');
             
             % Superconstructor
             obj@AE5224.control.Controller(model.u_min, model.u_max);
             
             % Subsystem controllers
-            [obj.x_lon_st, obj.u_lon_st, obj.K_lon] = ...
+            [x_lon_st_, obj.u_lon_st, obj.K_lon] = ...
                 AE5224.fixed_wing.control.lon.make_lqr(model, x_st, u_st);
-            [obj.x_lat_st, obj.u_lat_st, obj.K_lat] = ...
+            [x_lat_st_, obj.u_lat_st, obj.K_lat] = ...
                 AE5224.fixed_wing.control.lat.make_lqr(model, x_st, u_st);
+            
+            % Non-constant trims
+            [~, q_e, v_e, w_b] = unpack_x(x_st);
+            w_e = Quat(q_e).rotate(w_b);
+            obj.x_lon_st = @(t) [...
+                x_lon_st_(1:4);
+                x_lon_st_(5) - v_e(3)*t;
+            ];
+            obj.x_lat_st = @(t) [...
+                x_lat_st_(1:4);
+                controls.wrap(x_lat_st_(5) + w_e(3)*t, -pi, +pi);
+            ];
         end
     end
     
     methods (Access = protected)
-        function u = update_(obj, x)
-            %u = UPDATE_(obj, x)
+        function u = update_(obj, x, t)
+            %u = UPDATE_(obj, x, t)
             %   Update control output with new state
             %   - x = State [p_e; q_e; v_e; w_b]
+            %   - t = Current time [s]
             %   - u = Unsurated controls [d_e; d_a; d_r; d_p]
             
             % Imports
@@ -44,12 +59,18 @@ classdef Controller < AE5224.control.Controller
             import('AE5224.fixed_wing.control.lat.x_to_xlat');
             import('AE5224.fixed_wing.control.lon.ulon_to_u');
             import('AE5224.fixed_wing.control.lat.ulat_to_u');
+            import('controls.wrap');
             
-            % Linearized control
-            u_lon = obj.u_lon_st - obj.K_lon * (x_to_xlon(x) - obj.x_lon_st);
-            u_lat = obj.u_lat_st - obj.K_lat * (x_to_xlat(x) - obj.x_lat_st);
+            % Trim errors
+            dx_lon = x_to_xlon(x) - obj.x_lon_st(t);
+            dx_lat = x_to_xlat(x) - obj.x_lat_st(t);
+            dx_lat(5) = wrap(dx_lat(5), -pi, +pi);
             
-            % Comine controls
+            % Linearized controls
+            u_lon = obj.u_lon_st - obj.K_lon * dx_lon;
+            u_lat = obj.u_lat_st - obj.K_lat * dx_lat;
+            
+            % Combine controls
             u_lon = ulon_to_u(u_lon, zeros(4, 1));
             u_lat = ulat_to_u(u_lat, zeros(4, 1));
             u = u_lon + u_lat;

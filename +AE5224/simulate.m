@@ -93,21 +93,22 @@ while sim_body.t < t_max
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
-        z_gps = gps.measure(sim_body.x);
+        z_gps = gps.measure(x);
         ekf.correct_gps(z_gps);
     else
         z_gps = nan(6, 1);
     end
     
     % Simulate dynamics and control
-    %{
-    EKF feedback
+    t = sim_body.t;
+    % EKF feedback
     [q_e, p_e, vb_e, ~, ~] = EKF.unpack_x(ekf.x_est);
     x_hat = Model.pack_x(p_e, q_e, vb_e, z_gyr);
-    u = ctrl.update(x_hat);
-    %}
+    u = ctrl.update(x_hat, t);
     % Ideal feedback
-    u = ctrl.update(x);
+    %{
+    u = ctrl.update(x, t);
+    %}
     sim_body.update([u; va_b]);
     sim_wind.update();
     

@@ -10,3 +10,6 @@
 [submodule "lib/+timing"]
 	path = lib/+timing
 	url = https://github.com/doates625/timing_m.git
+[submodule "lib/+controls"]
+	path = lib/+controls
+	url = https://github.com/doates625/controls_m

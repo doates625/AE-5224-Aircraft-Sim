@@ -3,7 +3,7 @@ function log = trim1(t_max, del_t)
 %   Simulate trim1 condition
 %   
 %   Inputs:
-%   - t_max = Sim duration [s, def = 10.0]
+%   - t_max = Sim duration [s, def = 20.0]
 %   - del_t = Sim timestep [s, def = 0.01]
 %   
 %   Trim conditions:
@@ -14,7 +14,7 @@ import('AE5224.quad_rotor.trim.test');
 import('AE5224.Trim');
 
 % Default args
-if nargin < 1, t_max = 10.0; end
+if nargin < 1, t_max = 20.0; end
 if nargin < 2, del_t = 0.01; end
 
 % Test trim condition

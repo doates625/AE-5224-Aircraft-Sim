@@ -18,21 +18,24 @@ classdef (Abstract) Controller
             obj.u_max = u_max;
         end
         
-        function u = update(obj, x)
+        function u = update(obj, x, t)
             %u = UPDATE(obj, x)
             %   Update control output with new state
             %   - x = State [p_e; q_e; v_e; w_b]
+            %   - t = Current time [s]
             %   - u = Saturated control vector
-            u = obj.update_(x);
-            u = min(max(obj.u_min, u), obj.u_max);
+            import('controls.clamp');
+            u = obj.update_(x, t);
+            u = clamp(u, obj.u_min, obj.u_max);
         end
     end
     
     methods (Access = protected, Abstract)
-        u = update_(obj, x)
-        %u = UPDATE(obj, x)
+        u = update_(obj, x, t)
+        %u = UPDATE(obj, x, t)
         %   Update control output with new state
-        %   - x = State [p_e; q_e; v_e; w_b]
+        %   - x = State [p_e; q_e; v_e; w_b]4
+        %   - t = Current time [s]
         %   - u = Unsurated control vector
     end
 end
