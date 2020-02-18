@@ -14,7 +14,7 @@ function [A_lat, B_lat, x_lat, u_lat] = lin_model(model, x_st, u_st)
 %   - u_lat = Trim lat control vector
 %   
 %   Lat state x_lat:
-%   - v_by = Velocity body y [m/s]
+%   - v_by = Velocity Body y [m/s]
 %   - w_bx = Roll rate [rad/s]
 %   - w_bz = Yaw rate [rad/s]
 %   - th_x = Roll angle [rad]

@@ -14,9 +14,9 @@ function [A_lon, B_lon, x_lon, u_lon] = lin_model(model, x_st, u_st)
 %   - u_lon = Trim lon control vector
 %   
 %   Lon state x_lon:
-%   - v_bx = Velocity body x [m/s]
-%   - v_bz = Velocity body z [m/s]
-%   - w_by = Pitch velocity [rad/s]
+%   - v_bx = Velocity Body x [m/s]
+%   - v_bz = Velocity Body z [m/s]
+%   - w_by = Pitch rate [rad/s]
 %   - th_y = Pitch angle [rad]
 %   - h = Altitude [m]
 %   

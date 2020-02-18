@@ -1,4 +1,4 @@
-function log = trim1()
+function log = trim1(t_max, del_t)
 %log = TRIM1(t_max, del_t)
 %   Simulate trim1 condition
 %   

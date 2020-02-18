@@ -26,10 +26,11 @@ function [A_sub, B_sub, x_sub, u_sub] = sub_model(...
 % Trim sub-vectors
 x_sub = x_to_xsub(x_st);
 u_sub = u_to_usub(u_st);
+va_b = zeros(3, 1);
 
 % Conversion functions
-x_to_xdot = @(x) model.dynamics(x, u_st);
-u_to_xdot = @(u) model.dynamics(x_st, u);
+x_to_xdot = @(x) model.dynamics(x, [u_st; va_b]);
+u_to_xdot = @(u) model.dynamics(x_st, [u; va_b]);
 xsub_to_x = @(x_sub) xsub_to_x_ref(x_sub, x_st);
 usub_to_u = @(u_sub) usub_to_u_ref(u_sub, u_st);
 

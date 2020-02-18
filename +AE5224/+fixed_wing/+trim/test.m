@@ -14,7 +14,8 @@ clc
 % Imports
 import('AE5224.fixed_wing.Model');
 import('AE5224.fixed_wing.trim.solve');
-import('AE5224.control.OpenLoop');
+% import('AE5224.control.OpenLoop');
+import('AE5224.fixed_wing.control.Controller');
 import('AE5224.simulate');
 
 % Default args
@@ -29,47 +30,12 @@ fprintf('Solving for trim state...\n');
 model = Model();
 [x_st, u_st] = solve(model, trim);
 
-% TODO NOT this every time...
-
-%{
-
-% Lon linear model
-fprintf('Lon linearization...\n');
-[A_lon, B_lon, x_lon, u_lon] = ...
-    AE5224.fixed_wing.control.lon.lin_model(model, x_st, u_st);
-disp_model(A_lon, B_lon, x_lon, u_lon);
-
-% Lat linear model
-fprintf('Lat linearization...\n');
-[A_lat, B_lat, x_lat, u_lat] = ...
-    AE5224.fixed_wing.control.lat.lin_model(model, x_st, u_st);
-disp_model(A_lat, B_lat, x_lat, u_lat);
-
-%}
+% Control design
+fprintf('Designing linear controller...\n');
+% ctrl = OpenLoop(u_st, model.u_min, model.u_max);
+ctrl = Controller(model, x_st, u_st);
 
 % Simulate trim
-ctrl = OpenLoop(u_st, model.u_min, model.u_max);
 log = simulate(model, ctrl, x_st, t_max, del_t);
-
-function disp_model(A, B, x, u)
-    %DISP_MODEL(A, B, x, u)
-    %   Display linearized trim model
-    %   
-    %   Inputs:
-    %   - A = State matrix
-    %   - B = Input matrix
-    %   - x = Trim state
-    %   - u = Trim input
-    fprintf('State Matrix:\n');
-    disp(A)
-    fprintf('Input Matrix:\n');
-    disp(B)
-    fprintf('Trim State:\n')
-    disp(x)
-    fprintf('Trim Control:\n')
-    disp(u)
-    fprintf('Eigenvalues:\n');
-    disp(eig(A));
-end
 
 end
