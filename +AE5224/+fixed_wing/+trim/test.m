@@ -36,13 +36,13 @@ model = Model();
 % Lon linear model
 fprintf('Lon linearization...\n');
 [A_lon, B_lon, x_lon, u_lon] = ...
-    AE5224.fixed_wing.control.lon.model(model, x_st, u_st);
+    AE5224.fixed_wing.control.lon.lin_model(model, x_st, u_st);
 disp_model(A_lon, B_lon, x_lon, u_lon);
 
 % Lat linear model
 fprintf('Lat linearization...\n');
 [A_lat, B_lat, x_lat, u_lat] = ...
-    AE5224.fixed_wing.control.lat.model(model, x_st, u_st);
+    AE5224.fixed_wing.control.lat.lin_model(model, x_st, u_st);
 disp_model(A_lat, B_lat, x_lat, u_lat);
 
 %}

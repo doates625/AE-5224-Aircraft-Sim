@@ -1,9 +1,9 @@
-function [A_lon, B_lon, x_lon, u_lon] = model(body, x_st, u_st)
-%[A_lon, B_lon, x_lon, u_lon] = MODEL(body, x_st, u_st, verbose)
+function [A_lon, B_lon, x_lon, u_lon] = lin_model(model, x_st, u_st)
+%[A_lon, B_lon, x_lon, u_lon] = LIN_MODEL(model, x_st, u_st, verbose)
 %   Linearized longitudinal (lon) flight model
 %   
 %   Inputs:
-%   - body = Fixed-wing model [AE5224.fixed_wing.Body]
+%   - mode = Fixed-wing model [AE5224.fixed_wing.Body]
 %   - x_st = Trim state vector [p_e; q_e; v_e; w_b]
 %   - u_st = Trim control vector [d_e; d_a; d_r; d_p]
 %   
@@ -35,7 +35,7 @@ import('AE5224.fixed_wing.control.sub_model');
 
 % Numerical linearization
 [A_lon, B_lon, x_lon, u_lon] = sub_model(...
-    body, x_st, u_st, ...
+    model, x_st, u_st, ...
     @x_to_xlon, @xlon_to_x, ...
     @u_to_ulon, @ulon_to_u);
 
