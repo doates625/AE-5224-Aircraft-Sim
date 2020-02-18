@@ -6,6 +6,7 @@ classdef Model < AE5224.rigid_body.Model
     %   - d_a = Aileron angle [rad]
     %   - d_r = Rudder angle [rad]
     %   - d_p = Prop throttle [0-1]
+    %   - va_b = Air velocity Body [m/s]
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
@@ -146,7 +147,7 @@ classdef Model < AE5224.rigid_body.Model
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
-            %   - u = Input vector [d_e; d_a; d_r; d_p]
+            %   - u = Input vector [d_e; d_a; d_r; d_p; va_b]
             %   
             %   Outputs:
             %   - F_b = Net force vector [N]
@@ -163,7 +164,7 @@ classdef Model < AE5224.rigid_body.Model
             p = get_p();
             
             % Unpack states and controls
-            [~, q_e, v_e, w_b] = unpack_x(x);
+            [~, q_e, vb_e, w_b] = unpack_x(x);
             w_bx = w_b(1);
             w_by = w_b(2);
             w_bz = w_b(3);
@@ -171,21 +172,22 @@ classdef Model < AE5224.rigid_body.Model
             d_a = u(2);
             d_r = u(3);
             d_p = u(4);
+            va_b = u(5:7);
             
-            % Air-speed transform
+            % Air-relative velocity
             R_eb = Quat(q_e).inv().mat_rot();
-            v_a = R_eb * v_e;
-            v_ax = v_a(1);
-            v_ay = v_a(2);
-            v_az = v_a(3);
-            V_a = norm(v_a);
-            al = atan(v_az / v_ax);
-            be = asin(v_ay / V_a);
+            vr_b = R_eb * vb_e - va_b;
+            vr_bx = vr_b(1);
+            vr_by = vr_b(2);
+            vr_bz = vr_b(3);
+            V_r = norm(vr_b);
+            al = atan(vr_bz / vr_bx);
+            be = asin(vr_by / V_r);
             
             % Longitudinal AFMs
-            F_air = 0.5 * p * V_a^2 * obj.S_wn;
+            F_air = 0.5 * p * V_r^2 * obj.S_wn;
             M_lon = F_air * obj.c_wn;
-            C_c = obj.c_wn / (2 * V_a);
+            C_c = obj.c_wn / (2 * V_r);
             C_Fl = ...
                 obj.C_Fl_of + ...
                 obj.C_Fl_al * al + ...
@@ -211,7 +213,7 @@ classdef Model < AE5224.rigid_body.Model
             
             % Lateral AFMs
             M_lat = F_air * obj.b_wn;
-            C_b = obj.b_wn / (2 * V_a);
+            C_b = obj.b_wn / (2 * V_r);
             C_Fy = ...
                 obj.C_Fy_of + ...
                 obj.C_Fy_be * be + ...
@@ -239,7 +241,7 @@ classdef Model < AE5224.rigid_body.Model
             
             % Prop FMs
             V_p = obj.k_v * d_p;
-            F_px = 0.5 * p * obj.S_pr * obj.C_pr * (V_p^2 - V_a^2);
+            F_px = 0.5 * p * obj.S_pr * obj.C_pr * (V_p^2 - V_r^2);
             M_px = -obj.k_t * (obj.k_w * d_p)^2;
             
             % Gravitational forces

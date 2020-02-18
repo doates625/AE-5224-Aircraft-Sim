@@ -4,14 +4,7 @@ classdef Wind < handle
     %   Author: Dan Oates (WPI Class of 2020)
     
     properties (SetAccess = protected)
-        v_air;  % Trim airspeed [m/s]
-        del_t;  % Sim time delta [s]
-        std_x;  % Turbulence x [m/s]
-        std_y;  % Turbulence y [m/s]
-        std_z;  % Turbulence z [m/s]
-        amp_x;  % Spatial amp x [m]
-        amp_y;  % Spatial amp y [m]
-        amp_z;  % Spatial amp z [m]
+        va_b;   % Air velocity Body [m/s]
     end
     
     properties (Access = protected)
@@ -54,16 +47,6 @@ classdef Wind < handle
             if nargin < 7, amp_y = 200; end
             if nargin < 8, amp_z = 50; end
             
-            % Parameter copies
-            obj.v_air = v_air;
-            obj.del_t = del_t;
-            obj.std_x = std_x;
-            obj.std_y = std_y;
-            obj.std_z = std_z;
-            obj.amp_x = amp_x;
-            obj.amp_y = amp_y;
-            obj.amp_z = amp_z;
-            
             % Turbulence TF x
             num_x = std_x*sqrt(2*v_air/amp_x);
             den_x = [1, v_air/amp_x];
@@ -83,22 +66,23 @@ classdef Wind < handle
             [obj.A_z, obj.B_z, obj.C_z] = ssdata(c2d(tf_z, del_t, 'zoh'));
             
             % Initial conditions
+            obj.va_b = zeros(3, 1);
             obj.v_x = zeros(size(obj.A_x, 1), 1);
             obj.v_y = zeros(size(obj.A_y, 1), 1);
             obj.v_z = zeros(size(obj.A_z, 1), 1);
         end
         
-        function w_b = update(obj)
-            %w_b = UPDATE(obj)
+        function va_b = update(obj)
+            %va_b = UPDATE(obj)
             %   Update wind simulation
-            %   - w_b = Wind velocity Body [m/s]
+            %   - va_b = Air velocity Body [m/s]
             obj.v_x = obj.A_x * obj.v_x + obj.B_x * randn();
             obj.v_y = obj.A_y * obj.v_y + obj.B_y * randn();
             obj.v_z = obj.A_z * obj.v_z + obj.B_z * randn();
-            w_bx = obj.C_x * obj.v_x;
-            w_by = obj.C_y * obj.v_y;
-            w_bz = obj.C_z * obj.v_z;
-            w_b = [w_bx; w_by; w_bz];
+            obj.va_b(1) = obj.C_x * obj.v_x;
+            obj.va_b(2) = obj.C_y * obj.v_y;
+            obj.va_b(3) = obj.C_z * obj.v_z;
+            va_b = obj.va_b;
         end
     end
 end

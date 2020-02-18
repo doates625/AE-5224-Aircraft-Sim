@@ -21,12 +21,13 @@ classdef Air < AE5224.sensors.Sensor
             obj@AE5224.sensors.Sensor(cov_z);
         end
         
-        function z = measure(obj, x)
+        function z = measure(obj, x, va_b)
             %z = MEASURE(obj, x)
             %   Simulate airspeed reading
             %   
             %   Inputs:
-            %   - x = State vector [p_e; q_e; v_e; w_b]
+            %   - x = State vector [p_e; q_e; vb_e; w_b]
+            %   - va_b = Air velocity Body [m/s]
             %   
             %   Outputs:
             %   - z = Observation [v_bx; v_by; v_bz]
@@ -36,10 +37,10 @@ classdef Air < AE5224.sensors.Sensor
             import('quat.Quat');
             
             % Measurement sim
-            [~, q_e, v_e, ~] = unpack_x(x);
-            w_e = zeros(3, 1);
-            v_b = Quat(q_e).inv().rotate(v_e - w_e);
-            z = mvnrnd(v_b, obj.cov_z).';
+            [~, q_e, vb_e, ~] = unpack_x(x);
+            vb_b = Quat(q_e).inv().rotate(vb_e);
+            vr_b = vb_b - va_b;
+            z = mvnrnd(vr_b, obj.cov_z).';
         end
     end
 end

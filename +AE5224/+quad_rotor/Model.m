@@ -39,7 +39,7 @@ classdef Model < AE5224.rigid_body.Model
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
-            %   - u = Input vector [w_1; w_2; w_3; w_4]
+            %   - u = Input vector [w_1; w_2; w_3; w_4; va_b]
             %   
             %   Outputs:
             %   - F_b = Net force vector [N]
@@ -50,11 +50,12 @@ classdef Model < AE5224.rigid_body.Model
             import('AE5224.const.get_g');
             import('quat.Quat');
             
-            % Unpack state vector
+            % Unpack x and u
             [~, q_e, ~, ~] = unpack_x(x);
+            w_p = u(1:4);
             
             % Convert input to FMs
-            w_p2 = u.^2;
+            w_p2 = w_p.^2;
             F_wp = obj.k_F * w_p2;
             M_wp = obj.k_M * w_p2;
             

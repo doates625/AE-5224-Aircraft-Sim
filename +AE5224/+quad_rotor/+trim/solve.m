@@ -8,7 +8,7 @@ function [x_st, u_st] = solve(model, trim)
 %   
 %   Outputs:
 %   - x_st = Trim states [p_e; q_e; v_e; w_b]
-%   - u = Trim controls [w_1; w_2; w_3; w_4]
+%   - u_st = Trim controls [w_1; w_2; w_3; w_4]
 
 % Imports
 import('AE5224.rigid_body.Model.pack_x');

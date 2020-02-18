@@ -4,17 +4,23 @@ classdef EKF < kalman.EKF
     %   State x:
     %   - q_e = Attitude Earth [quat]
     %   - p_e = Position Earth [m]
-    %   - v_e = Velocity Earth [m/s]
-    %   - w_e = Air velocity Earth [m/s]
+    %   - vb_e = Body velocity Earth [m/s]
+    %   - va_e = Air velocity Earth [m/s]
     %   - b_e = Magnetic field Earth [uT]
     %   
     %   Input u:
     %   - w_b = Angular velocity Body [rad/s]
     %   - a_b = Acceleration Body [m/s^2]
     %   
-    %   Output z:
+    %   Output z1:
+    %   - b_b = Magnetic field Body [uT]
+    %   
+    %   Output z2:
+    %   - vr_b = Air-relative velocity Body [m/s]
+    %   
+    %   Output z3:
     %   - p_e = Position Earth [m]
-    %   - v_e = Velocity Earth [m]
+    %   - vb_e = Velocity Earth [m]
     %   
     %   Author: Dan Oates (WPI Class of 2020)
     
@@ -23,19 +29,19 @@ classdef EKF < kalman.EKF
     end
     
     methods (Access = public, Static)
-        function x = pack_x(q_e, p_e, v_e, w_e, b_e)
-            %x = PACK_X(q_e, p_e, v_e, w_e, b_e)
+        function x = pack_x(q_e, p_e, vb_e, w_e, b_e)
+            %x = PACK_X(q_e, p_e, vb_e, w_e, b_e)
             %   Make state vector from components
-            x = [q_e; p_e; v_e; w_e; b_e];
+            x = [q_e; p_e; vb_e; w_e; b_e];
         end
         
-        function [q_e, p_e, v_e, w_e, b_e] = unpack_x(x)
-            %[q_e, p_e, v_e, w_e, b_e] = UNPACK_X(x)
+        function [q_e, p_e, vb_e, va_e, b_e] = unpack_x(x)
+            %[q_e, p_e, vb_e, va_e, b_e] = UNPACK_X(x)
             %   Get components from state vector
             q_e = x(01:04);
             p_e = x(05:07);
-            v_e = x(08:10);
-            w_e = x(11:13);
+            vb_e = x(08:10);
+            va_e = x(11:13);
             b_e = x(14:16);
         end
         
@@ -52,17 +58,17 @@ classdef EKF < kalman.EKF
             a_b = u(4:6);
         end
         
-        function z = pack_z_gps(p_e, v_e)
-            %z = PACK_Z_GPS(p_e, v_e)
+        function z = pack_z_gps(p_e, vb_e)
+            %z = PACK_Z_GPS(p_e, vb_e)
             %   Make GPS output vector from components
-            z = [p_e; v_e];
+            z = [p_e; vb_e];
         end
         
-        function [p_e, v_e] = unpack_z_gps(z)
-            %[p_e, v_e] = UNPACK_Z_GPS(z)
+        function [p_e, vb_e] = unpack_z_gps(z)
+            %[p_e, vb_e] = UNPACK_Z_GPS(z)
             %   Get components from GPS output vector
             p_e = z(1:3);
-            v_e = z(4:6);
+            vb_e = z(4:6);
         end
     end
     
@@ -119,7 +125,7 @@ classdef EKF < kalman.EKF
         function x_est = correct_air(obj, z)
             %x_est = CORRECT_AIR(obj, z)
             %   Airspeed correction step
-            %   - z = Airspeed outputs [v_ax; v_ay; v_az]
+            %   - z = Airspeed outputs [va_bx; va_by; va_bz]
             %   - x_est = Corrected state [16 x 1]
             x_est = obj.correct(z, 2);
         end
@@ -127,7 +133,7 @@ classdef EKF < kalman.EKF
         function x_est = correct_gps(obj, z)
             %x_est = CORRECT_GPS(obj, z)
             %   GPS correction step
-            %   - z = GPS outputs [p_e; v_e]
+            %   - z = GPS outputs [p_e; vb_e]
             %   - x_est = Corrected state [16 x 1]
             x_est = obj.correct(z, 3);
         end
@@ -166,7 +172,7 @@ classdef EKF < kalman.EKF
             import('quat.Quat');
 
             % Unpack x and u
-            [q_e, p_e, v_e, w_e, b_e] = unpack_x(x);
+            [q_e, p_e, vb_e, va_e, b_e] = unpack_x(x);
             [w_b, a_b] = unpack_u(u);
 
             % Attitude update
@@ -174,16 +180,16 @@ classdef EKF < kalman.EKF
             q_e = Quat(q_e) * del_q;
 
             % Position update
-            p_e = p_e + v_e * del_t;
+            p_e = p_e + vb_e * del_t;
 
             % Velocity update
             a_g = [0; 0; get_g()];
             a_e = q_e.rotate(a_b) + a_g;
-            v_e = v_e + a_e * del_t;
+            vb_e = vb_e + a_e * del_t;
 
             % Re-pack x
             q_e = q_e.vector();
-            xn = pack_x(q_e, p_e, v_e, w_e, b_e);
+            xn = pack_x(q_e, p_e, vb_e, va_e, b_e);
         end
         
         function z = h_mag_(x)
@@ -212,23 +218,23 @@ classdef EKF < kalman.EKF
             import('quat.Quat');
             
             % Airspeed output
-            [q_e, ~, v_e, w_e, ~] = unpack_x(x);
-            z = Quat(q_e).inv().rotate(v_e - w_e);
+            [q_e, ~, vb_e, va_e, ~] = unpack_x(x);
+            z = Quat(q_e).inv().rotate(vb_e - va_e);
         end
         
         function z = h_gps_(x)
             %z = H_GPS_(x)
             %   GPS output function
             %   - x = State vector
-            %   - z = Output [p_e; v_e]
+            %   - z = Output [p_e; vb_e]
             
             % Imports
             import('AE5224.EKF.unpack_x');
             import('AE5224.EKF.pack_z_gps');
             
             % GPS output
-            [~, p_e, v_e, ~, ~] = unpack_x(x);
-            z = pack_z_gps(p_e, v_e);
+            [~, p_e, vb_e, ~, ~] = unpack_x(x);
+            z = pack_z_gps(p_e, vb_e);
         end
         
         function jac_xx = fx_(x, u, del_t)
@@ -330,13 +336,13 @@ classdef EKF < kalman.EKF
             import('quat.Quat');
             
             % Unpack state vector
-            [q_e, ~, v_e, w_e, ~] = unpack_x(x);
+            [q_e, ~, vb_e, va_e, ~] = unpack_x(x);
             q_e_inv = Quat(q_e).inv();
             R_eb = q_e_inv.mat_rot();
             
             % Output Jacobain
             jac_zx = zeros(3, 16);
-            jac_zx(:, 01:04) = q_e_inv.jac_rot(v_e - w_e);
+            jac_zx(:, 01:04) = q_e_inv.jac_rot(vb_e - va_e);
             jac_zx(:, 08:10) = +R_eb;
             jac_zx(:, 11:13) = -R_eb;
         end

@@ -18,11 +18,12 @@ import('quat.Quat');
 q_e = sym('q_e', [4, 1]);
 w_b = sym('w_b', [3, 1]);
 u_st = sym('u', [4, 1]);
+va_b = zeros(3, 1);
 
 % Symbolic forces and moments
 R_eb = Quat(q_e).conj().mat_rot();
 x_st = model.pack_x(trim.p_e, q_e, trim.v_e, w_b);
-[F_b, M_b] = model.forces(x_st, u_st);
+[F_b, M_b] = model.forces(x_st, [u_st; va_b]);
 
 % Solve equations
 F_c = trim.get_F_c(model.m);
