@@ -15,7 +15,7 @@ classdef Log < handle
         p_e_act;    % Position Earth [m]
         q_e_act;    % Attitude Earth [quat]
         vb_e_act;   % Velocity Earth [m/s]
-        va_e_act;   % Air velocity Earth [m/s]
+        va_b_act;   % Air velocity Body [m/s]
         w_b_act;    % Angular velocity Body [rad/s]
         b_e_act;    % Magnetic field Earth [uT]
         
@@ -23,20 +23,20 @@ classdef Log < handle
         p_e_est;    % Position Earth [m]
         q_e_est;    % Attitude Earth [quat]
         vb_e_est;   % Velocity Earth [m/s]
-        va_e_est;   % Air velocity Earth [m/s]
+        va_b_est;   % Air velocity Body [m/s]
         b_e_est;    % Magnetic field Earth [uT]
         
         % Estimate std logs
         p_e_std;    % Position Earth [m]
         q_e_std;    % Attitude Earth [quat]
         vb_e_std;   % Velocity Earth [m/s]
-        va_e_std;   % Air velocity Earth [m/s]
+        va_b_std;   % Air velocity Body [m/s]
         b_e_std;    % Magnetic field Earth [uT]
         
         % Measurement logs
         p_e_mea;    % Position Earth [m]
         vb_e_mea;   % Velocity Earth [m]
-        va_e_mea;   % Air velocity Earth [m/s]
+        va_b_mea;   % Air velocity Body [m/s]
         w_b_mea;    % Angular velocity Body [rad/s]
         b_e_mea;    % Magnetic field Earth [uT]
     end
@@ -61,22 +61,22 @@ classdef Log < handle
             obj.q_e_act = nan(4, n);
             obj.vb_e_act = nan(3, n);
             obj.w_b_act = nan(3, n);
-            obj.va_e_act = nan(3, n);
+            obj.va_b_act = nan(3, n);
             obj.b_e_act = nan(3, n);
             obj.p_e_est = nan(3, n);
             obj.q_e_est = nan(4, n);
             obj.vb_e_est = nan(3, n);
-            obj.va_e_est = nan(3, n);
+            obj.va_b_est = nan(3, n);
             obj.b_e_est = nan(3, n);
             obj.p_e_std = nan(3, n);
             obj.q_e_std = nan(4, n);
             obj.vb_e_std = nan(3, n);
-            obj.va_e_std = nan(3, n);
+            obj.va_b_std = nan(3, n);
             obj.b_e_std = nan(3, n);
             obj.p_e_mea = nan(3, n);
             obj.vb_e_mea = nan(3, n);
             obj.w_b_mea = nan(3, n);
-            obj.va_e_mea = nan(3, n);
+            obj.va_b_mea = nan(3, n);
             obj.b_e_mea = nan(3, n);
             obj.log_i = 1;
         end
@@ -100,32 +100,34 @@ classdef Log < handle
             [p_e_act_, q_e_act_, vb_e_act_, w_b_act_] = ...
                 Model.unpack_x(obj.sim_body.x);
             va_b = obj.sim_wind.va_b;
-            R_be = Quat(q_e_act_).mat_rot();
             obj.log_t(obj.log_i) = obj.sim_body.t;
             obj.p_e_act(:, obj.log_i) = p_e_act_;
             obj.q_e_act(:, obj.log_i) = q_e_act_;
             obj.vb_e_act(:, obj.log_i) = vb_e_act_;
-            obj.va_e_act(:, obj.log_i) = R_be * va_b;
+            obj.va_b_act(:, obj.log_i) = va_b;
             obj.w_b_act(:, obj.log_i) = w_b_act_;
             obj.b_e_act(:, obj.log_i) = get_b();
             
             % Kalman filter logs
             [q_e_est_, p_e_est_, vb_e_est_, va_e_est_, b_e_est_] = ...
                 EKF.unpack_x(obj.ekf.x_est);
+            R_eb = Quat(q_e_est_).inv().mat_rot();
+            va_b_est_ = R_eb * va_e_est_;
             obj.p_e_est(:, obj.log_i) = p_e_est_;
             obj.q_e_est(:, obj.log_i) = q_e_est_;
             obj.vb_e_est(:, obj.log_i) = vb_e_est_;
-            obj.va_e_est(:, obj.log_i) = va_e_est_;
+            obj.va_b_est(:, obj.log_i) = va_b_est_;
             obj.b_e_est(:, obj.log_i) = b_e_est_;
             
             % Kalman filter std logs
             x_std = sqrt(diag(obj.ekf.cov_x));
             [q_e_std_, p_e_std_, vb_e_std_, va_e_std_, b_e_std_] = ...
                 EKF.unpack_x(x_std);
+            va_b_std_ = R_eb * va_e_std_;
             obj.p_e_std(:, obj.log_i) = p_e_std_;
             obj.q_e_std(:, obj.log_i) = q_e_std_;
             obj.vb_e_std(:, obj.log_i) = vb_e_std_;
-            obj.va_e_std(:, obj.log_i) = va_e_std_;
+            obj.va_b_std(:, obj.log_i) = va_b_std_;
             obj.b_e_std(:, obj.log_i) = b_e_std_;
             
             % Measurement logs
@@ -136,9 +138,8 @@ classdef Log < handle
                 obj.b_e_mea(:, obj.log_i) = Quat(q_e_est_).rotate(z_mag);
             end
             if nargin >= 4
-                obj.va_e_mea(:, obj.log_i) = ...
-                    obj.vb_e_est(:, obj.log_i) - ...
-                    Quat(q_e_est_).rotate(z_air);
+                obj.va_b_mea(:, obj.log_i) = ...
+                    R_eb * obj.vb_e_est(:, obj.log_i) - z_air;
             end
             if nargin >= 5
                 [p_e_mea_, vb_e_mea_] = GPS.unpack_z(z_gps);
@@ -196,11 +197,11 @@ classdef Log < handle
         
         function plot_w_e(obj)
             %PLOT_W_E(obj) Plot wind velocity Earth
-            obj.plot_state('Wind Velocity Earth', 'Vel [m/s]', 'XYZ', {...
-                obj.va_e_act, ...
-                obj.va_e_est, ...
-                obj.va_e_std, ...
-                obj.va_e_mea});
+            obj.plot_state('Air Velocity Body', 'Vel [m/s]', 'XYZ', {...
+                obj.va_b_act, ...
+                obj.va_b_est, ...
+                obj.va_b_std, ...
+                obj.va_b_mea});
         end
         
         function plot_b_e(obj)

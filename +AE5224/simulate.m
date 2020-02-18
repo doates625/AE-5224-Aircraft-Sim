@@ -1,10 +1,11 @@
-function log = simulate(model, ctrl, x_st, t_max, del_t)
-%log = SIMULATE(body, ctrl, x_st, t_max, del_t)
+function log = simulate(model, ctrl, log_cls, x_st, t_max, del_t)
+%log = SIMULATE(body, ctrl, log_cls, x_st, t_max, del_t)
 %   Simulate and plot UAV flight
 %   
 %   Inputs:
 %   - model = Aircraft model [AE5224.rigid_body.Model]
 %   - ctrl = Control system [AE5224.control.Controller]
+%   - log_cls = Log class [@AE5224.Log]
 %   - x_st = Trim state [p_e; q_e; v_e; w_b]
 %   - t_max = Simulation duration [s]
 %   - del_t = Simulation timestep [s]
@@ -63,12 +64,7 @@ ekf = EKF(x_est, cov_x, ...
 
 % Create logger
 n_log = ceil(t_max / del_t) + 1;
-switch class(model)
-    case 'AE5224.fixed_wing.Model'
-        log = AE5224.fixed_wing.Log(sim_body, sim_wind, ekf, n_log);
-    case 'AE5224.quad_rotor.Model'
-        log = AE5224.quad_rotor.Log(sim_body, sim_wind, ekf, n_log);
-end
+log = log_cls(sim_body, sim_wind, ekf, n_log);
 
 % Run simulator
 fprintf('Simulating trim...\n');
@@ -77,8 +73,11 @@ prog.start();
 i_sim = 1;
 while sim_body.t < t_max
     
-    % Simulate IMU
+    % State and time
     x = sim_body.x;
+    t = sim_body.t;
+    
+    % Simulate IMU
     z_gyr = gyro.measure(x);
     z_acc = accel.measure(x);
     z_mag = mag.measure(x);
@@ -100,15 +99,9 @@ while sim_body.t < t_max
     end
     
     % Simulate dynamics and control
-    t = sim_body.t;
-    % EKF feedback
     [q_e, p_e, vb_e, ~, ~] = EKF.unpack_x(ekf.x_est);
-    x_hat = Model.pack_x(p_e, q_e, vb_e, z_gyr);
-    u = ctrl.update(x_hat, t);
-    % Ideal feedback
-    %{
-    u = ctrl.update(x, t);
-    %}
+    x_est = Model.pack_x(p_e, q_e, vb_e, z_gyr);
+    u = ctrl.update(x_est, t);
     sim_body.update([u; va_b]);
     sim_wind.update();
     

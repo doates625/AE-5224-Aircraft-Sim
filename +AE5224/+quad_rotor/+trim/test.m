@@ -14,6 +14,7 @@ clc
 % Imports
 import('AE5224.quad_rotor.Model');
 import('AE5224.quad_rotor.trim.solve');
+import('AE5224.quad_rotor.Log');
 import('AE5224.control.OpenLoop');
 import('AE5224.simulate');
 
@@ -31,6 +32,7 @@ model = Model();
 
 % Simulate trim
 ctrl = OpenLoop(u_st, model.u_min, model.u_max);
-log = simulate(model, ctrl, x_st, t_max, del_t);
+log_cls = @Log;
+log = simulate(model, ctrl, log_cls, x_st, t_max, del_t);
 
 end

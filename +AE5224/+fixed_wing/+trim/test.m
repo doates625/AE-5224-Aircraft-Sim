@@ -15,6 +15,7 @@ clc
 import('AE5224.fixed_wing.Model');
 import('AE5224.fixed_wing.trim.solve');
 import('AE5224.fixed_wing.control.Controller');
+import('AE5224.fixed_wing.Log');
 import('AE5224.simulate');
 
 % Default args
@@ -34,6 +35,7 @@ fprintf('Designing linear controller...\n');
 ctrl = Controller(model, x_st, u_st);
 
 % Simulate trim
-log = simulate(model, ctrl, x_st, t_max, del_t);
+log_cls = @Log;
+log = simulate(model, ctrl, log_cls, x_st, t_max, del_t);
 
 end
