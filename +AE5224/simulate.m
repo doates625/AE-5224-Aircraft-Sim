@@ -46,19 +46,16 @@ gps = GPS();
 n_gps = round(f_sim / f_gps);
 
 % Create EKF
-va_e = zeros(3, 1);
 b_e = get_b();
-x_est = EKF.pack_x(q_e, p_e, vb_e, va_e, b_e);
-cov_x = zeros(16);
+x_est = EKF.pack_x(q_e, p_e, vb_e, b_e);
+cov_x = zeros(13);
 cov_x(05:07, 05:07) = gps.cov_p;
 cov_x(08:10, 08:10) = gps.cov_v;
-cov_x(11:13, 11:13) = air.cov_z;
-cov_x(14:16, 14:16) = mag.cov_z;
+cov_x(11:13, 11:13) = mag.cov_z;
 ekf = EKF(x_est, cov_x, ...
     gyro.cov_z, ...
     accel.cov_z, ...
     mag.cov_z, ...
-    air.cov_z, ...
     gps.cov_p, ...
     gps.cov_v, ...
     del_t);
@@ -89,7 +86,6 @@ while body_sim.t < t_max
     % Simulate airspeed sensor
     va_b = wind_sim.va_b;
     z_air = air.measure(x, va_b);
-    % ekf.correct_air(z_air);   % Currently unstable
     
     % Simulate GPS
     if ~mod(i_sim, n_gps)
@@ -100,7 +96,7 @@ while body_sim.t < t_max
     end
     
     % Simulate dynamics and control
-    [q_e, p_e, vb_e, ~, ~] = EKF.unpack_x(ekf.x_est);
+    [q_e, p_e, vb_e, ~] = EKF.unpack_x(ekf.x_est);
     x_est = Model.pack_x(p_e, q_e, vb_e, z_gyr);
     u = ctrl.update(x_est, t);
     body_sim.update([u; va_b]);

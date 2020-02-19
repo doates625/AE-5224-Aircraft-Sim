@@ -23,14 +23,12 @@ classdef Log < handle
         p_e_est;    % Position Earth [m]
         q_e_est;    % Attitude Earth [quat]
         vb_e_est;   % Velocity Earth [m/s]
-        va_b_est;   % Air velocity Body [m/s]
         b_e_est;    % Magnetic field Earth [uT]
         
         % Estimate std logs
         p_e_std;    % Position Earth [m]
         q_e_std;    % Attitude Earth [quat]
         vb_e_std;   % Velocity Earth [m/s]
-        va_b_std;   % Air velocity Body [m/s]
         b_e_std;    % Magnetic field Earth [uT]
         
         % Measurement logs
@@ -66,12 +64,10 @@ classdef Log < handle
             obj.p_e_est = nan(3, n);
             obj.q_e_est = nan(4, n);
             obj.vb_e_est = nan(3, n);
-            obj.va_b_est = nan(3, n);
             obj.b_e_est = nan(3, n);
             obj.p_e_std = nan(3, n);
             obj.q_e_std = nan(4, n);
             obj.vb_e_std = nan(3, n);
-            obj.va_b_std = nan(3, n);
             obj.b_e_std = nan(3, n);
             obj.p_e_mea = nan(3, n);
             obj.vb_e_mea = nan(3, n);
@@ -109,25 +105,21 @@ classdef Log < handle
             obj.b_e_act(:, obj.log_i) = get_b();
             
             % Kalman filter logs
-            [q_e_est_, p_e_est_, vb_e_est_, va_e_est_, b_e_est_] = ...
+            [q_e_est_, p_e_est_, vb_e_est_, b_e_est_] = ...
                 EKF.unpack_x(obj.ekf.x_est);
             R_eb = Quat(q_e_est_).inv().mat_rot();
-            va_b_est_ = R_eb * va_e_est_;
             obj.p_e_est(:, obj.log_i) = p_e_est_;
             obj.q_e_est(:, obj.log_i) = q_e_est_;
             obj.vb_e_est(:, obj.log_i) = vb_e_est_;
-            obj.va_b_est(:, obj.log_i) = va_b_est_;
             obj.b_e_est(:, obj.log_i) = b_e_est_;
             
             % Kalman filter std logs
             x_std = sqrt(diag(obj.ekf.cov_x));
-            [q_e_std_, p_e_std_, vb_e_std_, va_e_std_, b_e_std_] = ...
+            [q_e_std_, p_e_std_, vb_e_std_, b_e_std_] = ...
                 EKF.unpack_x(x_std);
-            va_b_std_ = R_eb * va_e_std_;
             obj.p_e_std(:, obj.log_i) = p_e_std_;
             obj.q_e_std(:, obj.log_i) = q_e_std_;
             obj.vb_e_std(:, obj.log_i) = vb_e_std_;
-            obj.va_b_std(:, obj.log_i) = va_b_std_;
             obj.b_e_std(:, obj.log_i) = b_e_std_;
             
             % Measurement logs
@@ -155,9 +147,9 @@ classdef Log < handle
             %PLOT(obj) Generate all state plots
             obj.plot_p_e();
             obj.plot_q_e();
-            obj.plot_v_e();
+            obj.plot_vb_e();
             obj.plot_w_b();
-            obj.plot_w_e();
+            obj.plot_va_b();
             obj.plot_b_e();
             obj.plot_traj(true);
             obj.plot_traj(false);
@@ -180,8 +172,8 @@ classdef Log < handle
                 obj.q_e_std});
         end
         
-        function plot_v_e(obj)
-            %PLOT_V_E(obj) Plot velocity Earth
+        function plot_vb_e(obj)
+            %PLOT_VB_E(obj) Plot body velocity Earth
             obj.plot_state('Velocity Earth', 'Vel [m/s]', 'XYZ', {...
                 obj.vb_e_act, ...
                 obj.vb_e_est, ...
@@ -196,12 +188,10 @@ classdef Log < handle
                 obj.w_b_mea});
         end
         
-        function plot_w_e(obj)
-            %PLOT_W_E(obj) Plot wind velocity Earth
+        function plot_va_b(obj)
+            %PLOT_VA_B(obj) Plot wind velocity Earth
             obj.plot_state('Air Velocity Body', 'Vel [m/s]', 'XYZ', {...
                 obj.va_b_act, ...
-                obj.va_b_est, ...
-                obj.va_b_std, ...
                 obj.va_b_mea});
         end
         
@@ -359,16 +349,16 @@ classdef Log < handle
                 if n_logs == 2 || n_logs == 4
                     if n_logs == 2, ls = 'b-'; end
                     if n_logs == 4, ls = 'rx'; end
-                    plot(obj.log_t, x_mea(i, :), ls, 'DisplayName', 'Mea');
+                    plot(obj.log_t, x_mea(i, :), ls, 'DisplayName', 'Meas');
                 end
                 if n_logs >= 3
-                    plot(obj.log_t, x_est(i, :), 'b-', 'DisplayName', 'Est');
+                    plot(obj.log_t, x_est(i, :), 'b-', 'DisplayName', 'EKF');
                     plot(obj.log_t, x_est(i, :) + 2*x_std(i, :), 'b--', ...
-                        'DisplayName', 'Est+');
+                        'DisplayName', 'EKF+');
                     plot(obj.log_t, x_est(i, :) - 2*x_std(i, :), 'b--', ...
-                        'DisplayName', 'Est-');
+                        'DisplayName', 'EKF-');
                 end
-                plot(obj.log_t, x_act(i, :), 'k--', 'DisplayName', 'Act');
+                plot(obj.log_t, x_act(i, :), 'k--', 'DisplayName', 'True');
                 legend();
             end
             
