@@ -1,14 +1,15 @@
-function log = simulate(model, ctrl, log_cls, x_st, t_max, del_t)
-%log = SIMULATE(body, ctrl, log_cls, x_st, t_max, del_t)
+function log = simulate(model, ctrl, sim_wind, x_st, t_max, del_t, log_cls)
+%log = SIMULATE(model, ctrl, sim_wind, x_st, t_max, del_t, log_cls)
 %   Simulate and plot UAV flight
 %   
 %   Inputs:
 %   - model = Aircraft model [AE5224.rigid_body.Model]
 %   - ctrl = Control system [AE5224.control.Controller]
-%   - log_cls = Log class [@AE5224.Log]
+%   - sim_wind = Wind simulation flag [logical]
 %   - x_st = Trim state [p_e; q_e; v_e; w_b]
 %   - t_max = Simulation duration [s]
 %   - del_t = Simulation timestep [s]
+%   - log_cls = Log class [@AE5224.Log]
 %   
 %   Outputs:
 %   - log = Log object [AE5224.Log]
@@ -29,8 +30,8 @@ import('timing.ProgDisp');
 % Create simulators
 f_sim = 1 / del_t;
 [p_e, q_e, vb_e, ~] = Model.unpack_x(x_st);
-sim_body = Sim(model, x_st, del_t);
-sim_wind = Wind(norm(vb_e), del_t);
+body_sim = Sim(model, x_st, del_t);
+wind_sim = Wind(norm(vb_e), del_t);
 
 % Create sensors
 f_imu = 100.0;
@@ -64,18 +65,18 @@ ekf = EKF(x_est, cov_x, ...
 
 % Create logger
 n_log = ceil(t_max / del_t) + 1;
-log = log_cls(sim_body, sim_wind, ekf, n_log);
+log = log_cls(body_sim, wind_sim, ekf, n_log);
 
 % Run simulator
 fprintf('Simulating trim...\n');
 prog = ProgDisp();
 prog.start();
 i_sim = 1;
-while sim_body.t < t_max
+while body_sim.t < t_max
     
     % State and time
-    x = sim_body.x;
-    t = sim_body.t;
+    x = body_sim.x;
+    t = body_sim.t;
     
     % Simulate IMU
     z_gyr = gyro.measure(x);
@@ -86,7 +87,7 @@ while sim_body.t < t_max
     ekf.correct_mag(z_mag);
     
     % Simulate airspeed sensor
-    va_b = sim_wind.va_b;
+    va_b = wind_sim.va_b;
     z_air = air.measure(x, va_b);
     % ekf.correct_air(z_air);   % Currently unstable
     
@@ -102,12 +103,12 @@ while sim_body.t < t_max
     [q_e, p_e, vb_e, ~, ~] = EKF.unpack_x(ekf.x_est);
     x_est = Model.pack_x(p_e, q_e, vb_e, z_gyr);
     u = ctrl.update(x_est, t);
-    sim_body.update([u; va_b]);
-    sim_wind.update();
+    body_sim.update([u; va_b]);
+    if sim_wind; wind_sim.update(); end
     
     % Logging and progress
     log.update(u, z_gyr, z_mag, z_air, z_gps);
-    prog.update(sim_body.t / t_max);
+    prog.update(body_sim.t / t_max);
     i_sim = i_sim + 1;
 end
 

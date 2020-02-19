@@ -11,26 +11,32 @@ classdef Controller < AE5224.control.Controller
     end
     
     methods (Access = public)
-        function obj = Controller(model, x_st, u_st)
-            %obj = CONTROLLER(model, trim)
+        function obj = Controller(model, x_st, u_st, verbose)
+            %obj = CONTROLLER(model, x_st, u_st, verbose)
             %   Construct fixed-wing controller
             %   - model = Aircraft model [AE5224.fixed_wing.Model]
             %   - x_st = Trim states [p_e; q_e; v_e; w_b]
             %   - u_st = Trim controls [d_e; d_a; d_r; d_p]
+            %   - verbose = Print flag [logical, def = true]
             
             % Imports
             import('AE5224.fixed_wing.control.make_lqr');
             import('AE5224.rigid_body.Model.unpack_x');
             import('quat.Quat');
             
+            % Default args
+            if nargin < 4, verbose = true; end
+            
             % Superconstructor
             obj@AE5224.control.Controller(model.u_min, model.u_max);
             
             % Subsystem controllers
             [x_lon_st_, obj.u_lon_st, obj.K_lon] = ...
-                AE5224.fixed_wing.control.lon.make_lqr(model, x_st, u_st);
+                AE5224.fixed_wing.control.lon.make_lqr(...
+                    model, x_st, u_st, verbose);
             [x_lat_st_, obj.u_lat_st, obj.K_lat] = ...
-                AE5224.fixed_wing.control.lat.make_lqr(model, x_st, u_st);
+                AE5224.fixed_wing.control.lat.make_lqr(...
+                    model, x_st, u_st, verbose);
             
             % Non-constant trims
             [~, q_e, v_e, w_b] = unpack_x(x_st);

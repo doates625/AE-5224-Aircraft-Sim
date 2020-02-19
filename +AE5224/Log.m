@@ -159,7 +159,8 @@ classdef Log < handle
             obj.plot_w_b();
             obj.plot_w_e();
             obj.plot_b_e();
-            obj.plot_traj();
+            obj.plot_traj(true);
+            obj.plot_traj(false);
         end
         
         function plot_p_e(obj)
@@ -213,12 +214,19 @@ classdef Log < handle
                 obj.b_e_mea});
         end
         
-        function plot_traj(obj)
-            %PLOT_TRAJ(obj) Plots trajectory with attitude in 3D
+        function plot_traj(obj, plot_ekf)
+            %PLOT_TRAJ(obj, plot_ekf)
+            %   Plots trajectory with attitude in 3D
+            %   - plot_ekf = Flag to plot EKF estimate [logical, def = true]
             
             % Imports
             import('live_plot.Frame3D');
             import('quat.Quat');
+            
+            % Default args
+            if nargin < 2
+                plot_ekf = true;
+            end
             
             % Format figure
             figure;
@@ -235,8 +243,12 @@ classdef Log < handle
             p_x_est = obj.p_e_est(1, :);
             p_y_est = obj.p_e_est(2, :);
             p_z_est = obj.p_e_est(3, :);
-            plot3(p_x_act, p_y_act, p_z_act, 'k-');
-            plot3(p_x_est, p_y_est, p_z_est, 'k--');
+            plot3(p_x_act, p_y_act, p_z_act, 'k-', ...
+                'DisplayName', 'Body Path');
+            if plot_ekf
+                plot3(p_x_est, p_y_est, p_z_est, 'k--', ...
+                    'DisplayName', 'EKF Path');
+            end
             
             % Plot attitude
             n = length(obj.log_t);
@@ -251,24 +263,44 @@ classdef Log < handle
                 att_act.plot_x.plot_.LineWidth = 2;
                 att_act.plot_y.plot_.LineWidth = 2;
                 att_act.plot_z.plot_.LineWidth = 2;
+                if i == 1
+                    att_act.plot_x.plot_.DisplayName = 'Body x';
+                    att_act.plot_y.plot_.DisplayName = 'Body y';
+                    att_act.plot_z.plot_.DisplayName = 'Body z';
+                else
+                    att_act.plot_x.plot_.HandleVisibility = 'off';
+                    att_act.plot_y.plot_.HandleVisibility = 'off';
+                    att_act.plot_z.plot_.HandleVisibility = 'off';
+                end
                 R = Quat(obj.q_e_act(:, i)).mat_rot();
                 p = obj.p_e_act(:, i);
                 att_act.update(R, p);
                 
                 % Attitude estimate
-                att_est = Frame3D(vec_len);
-                att_est.plot_x.plot_.Color = 'r';
-                att_est.plot_y.plot_.Color = 'g';
-                att_est.plot_z.plot_.Color = 'b';
-                att_est.plot_x.plot_.LineWidth = 2;
-                att_est.plot_y.plot_.LineWidth = 2;
-                att_est.plot_z.plot_.LineWidth = 2;
-                att_est.plot_x.plot_.LineStyle = '--';
-                att_est.plot_y.plot_.LineStyle = '--';
-                att_est.plot_z.plot_.LineStyle = '--';
-                R = Quat(obj.q_e_est(:, i)).mat_rot();
-                p = obj.p_e_est(:, i);
-                att_est.update(R, p);
+                if plot_ekf
+                    att_est = Frame3D(vec_len);
+                    att_est.plot_x.plot_.Color = 'r';
+                    att_est.plot_y.plot_.Color = 'g';
+                    att_est.plot_z.plot_.Color = 'b';
+                    att_est.plot_x.plot_.LineWidth = 2;
+                    att_est.plot_y.plot_.LineWidth = 2;
+                    att_est.plot_z.plot_.LineWidth = 2;
+                    att_est.plot_x.plot_.LineStyle = '--';
+                    att_est.plot_y.plot_.LineStyle = '--';
+                    att_est.plot_z.plot_.LineStyle = '--';
+                    if i == 1
+                        att_est.plot_x.plot_.DisplayName = 'EKF x';
+                        att_est.plot_y.plot_.DisplayName = 'EKF y';
+                        att_est.plot_z.plot_.DisplayName = 'EKF z';
+                    else
+                        att_est.plot_x.plot_.HandleVisibility = 'off';
+                        att_est.plot_y.plot_.HandleVisibility = 'off';
+                        att_est.plot_z.plot_.HandleVisibility = 'off';
+                    end
+                    R = Quat(obj.q_e_est(:, i)).mat_rot();
+                    p = obj.p_e_est(:, i);
+                    att_est.update(R, p);
+                end
             end
             
             % Format axes
@@ -277,6 +309,7 @@ classdef Log < handle
             view(-105, +25)
             axis equal
             camproj perspective
+            legend()
         end
     end
     
