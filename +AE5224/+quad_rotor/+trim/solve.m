@@ -16,11 +16,10 @@ import('AE5224.const.get_g');
 import('quat.Quat');
 
 % Unpack trim
-w_e = trim.w_e;
-F_c = trim.get_F_c(model.m);
-
-% Trim states
-F_g = model.m*get_g();  % Gravity [N]
+w_e = trim.w_e;         % Earth angle rate [rad/s]
+m = model.m;            % Quadrotor mass [kg]
+F_c = m * trim.a_e(2);  % Centripetal force [N]
+F_g = m * get_g();      % Gravity [N]
 F_p = hypot(F_c, F_g);  % Force norm [N]
 tx = atan2(F_c, F_g);   % Roll angle [rad]
 x_hat = [1; 0; 0];      % X unit vector

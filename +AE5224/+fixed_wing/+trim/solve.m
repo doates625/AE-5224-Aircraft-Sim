@@ -28,7 +28,7 @@ x_dot = model.dynamics(x_st, [u_st; va_b]);
 
 % Numerical solver
 eqs = [
-    v_e_dot == trim.V^2 / trim.R * [0; 1; 0];
+    v_e_dot == trim.a_e;
     w_b_dot == 0;
     w_b == R_eb * trim.w_e;
     R_eb(2, 1) == 0

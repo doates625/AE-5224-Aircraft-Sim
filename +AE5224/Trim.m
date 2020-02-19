@@ -11,6 +11,7 @@ classdef Trim < handle
         p_e;    % Init Earth position [m]
         v_e;    % Init Earth velocity [m/s]
         w_e;    % Init Earth angle rate [rad/s]
+        a_e;    % Init Earth accel [m/s]
     end
     
     methods (Access = public)
@@ -32,18 +33,7 @@ classdef Trim < handle
             s_gam = sin(gam);
             obj.v_e = V * [c_gam; 0; -s_gam];
             obj.w_e = V * c_gam / R * [0; 0; 1];
-        end
-        
-        function F_c = get_F_c(obj, m)
-            %F_c = GET_F_C(obj, body)
-            %   Get trim centripetal force
-            %   
-            %   Inputs:
-            %   - m = Body mass [kg]
-            %   
-            %   Outputs:
-            %   - F_c = Centripetal force [N]
-            F_c = m * obj.V^2 / obj.R;
+            obj.a_e = obj.v_e(1) * obj.w_e(3) * [0; 1; 0];
         end
     end
 end
