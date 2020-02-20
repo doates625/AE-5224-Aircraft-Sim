@@ -32,6 +32,8 @@ model = Model();
 
 % Simulate trim
 ctrl = OpenLoop(u_st, model.u_min, model.u_max);
-log = simulate(model, ctrl, false, x_st, t_max, del_t, @Log);
+sim_wind = false;
+ekf_fb = false;
+log = simulate(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
 
 end

@@ -49,7 +49,7 @@ while sat
     for i = 1:n
         dx = zeros(n, 1);
         
-        % For each limit
+        % For each limit direction
         for d = 1:2
             dx(i) = dx_lim{d}(i);
             u = u_st - K * dx;
@@ -59,16 +59,9 @@ while sat
                 if u(j) > u_max(j) || u(j) < u_min(j)
                     R(j, j) = R(j, j) * 1.1;
                     sat = true;
-                    break
                 end
             end
-            
-            % Sat check
-            if sat, break; end
         end
-        
-        % Sat check
-        if sat, break; end
     end
 end
 

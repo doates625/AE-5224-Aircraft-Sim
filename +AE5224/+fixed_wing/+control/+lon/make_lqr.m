@@ -23,9 +23,9 @@ if nargin < 4, verbose = true; end
 
 % Max deviations
 dx_lon_max = [
-    5.0;    % Velocity body x [m/s]
-    5.0;    % Velocity Body z [m/s]
-    1.0;    % Pitch rate [rad/s]
+    0.2;    % Velocity body x [m/s]
+    0.2;    % Velocity Body z [m/s]
+    0.1;    % Pitch rate [rad/s]
     0.1;    % Pitch angle [rad]
     10.0;   % Altitude [m]
 ];

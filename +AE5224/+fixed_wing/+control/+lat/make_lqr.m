@@ -23,9 +23,9 @@ if nargin < 4, verbose = true; end
 
 % Max deviations
 dx_lat_max = [
-    3.0;    % Velocity Body y [m/s]
+    0.2;    % Velocity Body y [m/s]
     1.0;    % Roll rate [rad/s]
-    0.5;    % Yaw rate [rad/s]
+    1.0;    % Yaw rate [rad/s]
     0.1;    % Roll angle [rad]
     0.1;    % Yaw angle [rad]
 ];

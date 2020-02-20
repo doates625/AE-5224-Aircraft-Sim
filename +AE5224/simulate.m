@@ -1,11 +1,12 @@
-function log = simulate(model, ctrl, sim_wind, x_st, t_max, del_t, log_cls)
-%log = SIMULATE(model, ctrl, sim_wind, x_st, t_max, del_t, log_cls)
+function log = simulate(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, log_cls)
+%log = SIMULATE(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, log_cls)
 %   Simulate and plot UAV flight
 %   
 %   Inputs:
 %   - model = Aircraft model [AE5224.rigid_body.Model]
 %   - ctrl = Control system [AE5224.control.Controller]
 %   - sim_wind = Wind simulation flag [logical]
+%   - ekf_fb = EKF feedback flag [logical]
 %   - x_st = Trim state [p_e; q_e; v_e; w_b]
 %   - t_max = Simulation duration [s]
 %   - del_t = Simulation timestep [s]
@@ -96,9 +97,13 @@ while body_sim.t < t_max
     end
     
     % Simulate dynamics and control
-    [q_e, p_e, vb_e, ~] = EKF.unpack_x(ekf.x_est);
-    x_est = Model.pack_x(p_e, q_e, vb_e, z_gyr);
-    u = ctrl.update(x_est, t);
+    if ekf_fb
+        [q_e, p_e, vb_e, ~] = EKF.unpack_x(ekf.x_est);
+        x_est = Model.pack_x(p_e, q_e, vb_e, z_gyr);
+        u = ctrl.update(x_est, t);
+    else
+        u = ctrl.update(x, t);
+    end
     body_sim.update([u; va_b]);
     if sim_wind; wind_sim.update(); end
     
