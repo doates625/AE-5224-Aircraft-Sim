@@ -2,13 +2,13 @@
 clear, clc
 
 % Imports
-import('AE5224.dubins.RSR');
-import('AE5224.dubins.LSL');
+import('AE5224.dubins.path.RSR');
+import('AE5224.dubins.path.LSL');
 
 % Path conditions
 pa = [0; 0]; ha = 0;
 pb = 10*rand(2, 1)-5; hb = pi*rand();
-r = 1;
+r = 2.0;
 
 % Generate paths
 rsr = RSR(pa, ha, pb, hb, r);
