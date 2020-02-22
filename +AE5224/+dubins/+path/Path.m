@@ -79,8 +79,9 @@ classdef (Abstract) Path < handle
             p = obj.get(d);
             
             % Path plot
-            figure(h);
-            clf, hold on, grid on
+            figure(h); clf
+            subplot(2, 2, [1, 3])
+            hold on, grid on
             title('Dubins Path');
             xlabel('Y')
             ylabel('X')
@@ -88,6 +89,22 @@ classdef (Abstract) Path < handle
             plot_circ(obj.c01, obj.r, 'k--');
             plot_circ(obj.c23, obj.r, 'k--');
             axis equal
+            
+            % X plot
+            subplot(2, 2, 2)
+            hold on, grid on
+            title('X Path')
+            xlabel('D')
+            ylabel('X')
+            plot(d, p(1, :), 'b-')
+            
+            % Y plot
+            subplot(2, 2, 4)
+            hold on, grid on
+            title('Y Path')
+            xlabel('D')
+            ylabel('Y')
+            plot(d, p(2, :), 'b-')
         end
     end
     

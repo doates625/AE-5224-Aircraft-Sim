@@ -15,5 +15,5 @@ rsr = RSR(pa, ha, pb, hb, r);
 lsl = LSL(pa, ha, pb, hb, r);
 
 % Plot paths
-rsr.plot(1); title(sprintf('RSR Path [d = %.2f]', rsr.dist()));
-lsl.plot(2); title(sprintf('LSL Path [d = %.2f]', lsl.dist()));
+fig_rsr = figure(1); fig_rsr.Name = 'RSR'; rsr.plot(fig_rsr);
+fig_lsl = figure(2); fig_lsl.Name = 'LSL'; rsr.plot(fig_lsl);
