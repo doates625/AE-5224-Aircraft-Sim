@@ -8,10 +8,10 @@ import('AE5224.dubins.path.RSL');
 import('AE5224.dubins.path.RSR');
 
 % Path conditions
-pa = [0; 0];
-ha = 0;
-pb = 10*rand(2, 1)-5;
-hb = pi*rand();
+pa = 5*(2*rand(2, 1) - 1);
+ha = pi*(2*rand()-1);
+pb = 5*(2*rand(2, 1) - 1);
+hb = pi*(2*rand()-1);
 r = 1;
 
 % Generate paths

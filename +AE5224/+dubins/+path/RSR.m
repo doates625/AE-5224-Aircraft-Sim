@@ -1,4 +1,4 @@
-classdef RSR < AE5224.dubins.path.XSY
+classdef RSR < AE5224.dubins.path.Path
     %RSR Dubins RSR path
     
     methods (Access = public)
@@ -10,7 +10,7 @@ classdef RSR < AE5224.dubins.path.XSY
             %   - pb = Point B [x; y]
             %   - hb = Heading B [rad]
             %   - r = Turn radius
-            obj@AE5224.dubins.path.XSY(pa, ha, pb, hb, r, 'R', 'R');
+            obj@AE5224.dubins.path.Path(pa, ha, pb, hb, r, 'R', 'R');
         end
     end
 end
