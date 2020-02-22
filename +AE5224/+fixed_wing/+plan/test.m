@@ -21,6 +21,10 @@ r = 150;
 v = 30;
 h = 100;
 
+% Display Title
+clc
+fprintf('Fixed-Wing Dubins Path 1\n\n');
+
 % Display problem
 fprintf('Finding Dubins path...\n');
 fprintf('A: p = (%+.1f, %+.1f, %+.1f) [km], h = %.0f [deg]\n', ...

@@ -7,10 +7,6 @@ function path2()
 %   - p(T) = [1.15, 1, -0.1] [km]
 %   - h(T) = 90 deg
 
-% Printout
-clc
-fprintf('Fixed-Wing Dubins Path 2\n\n');
-
 % Imports
 import('AE5224.fixed_wing.plan.test');
 
