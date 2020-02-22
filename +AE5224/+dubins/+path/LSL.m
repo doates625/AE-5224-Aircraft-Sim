@@ -1,4 +1,4 @@
-classdef LSL < AE5224.dubins.path.XSX
+classdef LSL < AE5224.dubins.path.XSY
     %LSL Dubins LSL path
     
     methods (Access = public)
@@ -10,7 +10,7 @@ classdef LSL < AE5224.dubins.path.XSX
             %   - pb = Point B [x; y]
             %   - hb = Heading B [rad]
             %   - r = Turn radius
-            obj@AE5224.dubins.path.XSX(pa, ha, pb, hb, r, 'L');
+            obj@AE5224.dubins.path.XSY(pa, ha, pb, hb, r, 'L', 'L');
         end
     end
 end
