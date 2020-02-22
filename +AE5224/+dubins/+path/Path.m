@@ -78,11 +78,13 @@ classdef (Abstract) Path < handle
             n = length(d);
             p = nan(2, n);
             for i = 1:n
-                if d(i) < obj.d01
+                if d(i) < 0
+                    continue
+                elseif d(i) <= obj.d01
                     p(:, i) = obj.get_01(d(i));
-                elseif d(i) < obj.d02
+                elseif d(i) <= obj.d02
                     p(:, i) = obj.get_12(d(i));
-                elseif d(i) < obj.d03
+                elseif d(i) <= obj.d03
                     p(:, i) = obj.get_23(d(i));
                 end
             end
