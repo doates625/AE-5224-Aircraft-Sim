@@ -27,10 +27,10 @@ fprintf('Fixed-Wing Dubins Path 1\n\n');
 
 % Display problem
 fprintf('Finding Dubins path...\n');
-fprintf('A: p = (%+.1f, %+.1f, %+.1f) [km], h = %.0f [deg]\n', ...
-    pa/1000, h/1000, rad2deg(ha));
-fprintf('B: p = (%+.1f, %+.1f, %+.1f) [km], h = %.0f [deg]\n', ...
-    pb/1000, h/1000, rad2deg(hb));
+fprintf('A: p = (%+.2f, %+.2f, %+.2f) [km], h = %.0f [deg]\n', ...
+    pa/1000, -h/1000, rad2deg(ha));
+fprintf('B: p = (%+.2f, %+.2f, %+.2f) [km], h = %.0f [deg]\n', ...
+    pb/1000, -h/1000, rad2deg(hb));
 fprintf('\n');
 
 % Dubins path
@@ -47,5 +47,7 @@ fprintf('Dist: %.0f [m]\n', dist);
 fprintf('Time: %.1f [s]\n', time);
 fprintf('\n');
 path.plot(figure(1));
+xlabel('Pos-Y [m]')
+ylabel('Pos-X [m]')
 
 end
