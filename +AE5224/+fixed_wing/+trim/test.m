@@ -20,7 +20,7 @@ import('AE5224.fixed_wing.trim.solve');
 import('AE5224.fixed_wing.control.Controller');
 import('AE5224.fixed_wing.Log');
 import('AE5224.control.OpenLoop');
-import('AE5224.simulate');
+import('AE5224.sim');
 
 % Initial printout
 fprintf('Fixedwing Trim Test\n\n');
@@ -42,6 +42,6 @@ else
 end
 
 % Simulate trim
-log = simulate(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
+log = sim(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
 
 end

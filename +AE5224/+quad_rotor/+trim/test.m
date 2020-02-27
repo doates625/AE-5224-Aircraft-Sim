@@ -17,7 +17,7 @@ import('AE5224.quad_rotor.trim.solve');
 import('AE5224.quad_rotor.Log');
 import('AE5224.control.OpenLoop');
 import('AE5224.rigid_body.Model.unpack_x');
-import('AE5224.simulate');
+import('AE5224.sim');
 import('quat.Quat');
 
 % Default args
@@ -54,6 +54,6 @@ fprintf('- Prop 4: %.0f [rpm]\n\n', u_st(4));
 ctrl = OpenLoop(u_st, model.u_min, model.u_max);
 sim_wind = false;
 ekf_fb = false;
-log = simulate(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
+log = sim(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
 
 end

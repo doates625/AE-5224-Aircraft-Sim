@@ -1,5 +1,5 @@
-function log = simulate(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, log_cls)
-%log = SIMULATE(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, log_cls)
+function log = sim(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, log_cls)
+%log = sim(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, log_cls)
 %   Simulate and plot UAV flight
 %   
 %   Inputs:
@@ -90,22 +90,20 @@ while body_sim.t < t_max
         z_gps = nan(6, 1);
     end
     
-    % Simulate wind
-    va_b = wind_sim.update();
-    
     % Simulate dynamics and control
+    va_b = wind_sim.update();
     if ekf_fb
         [q_e, p_e, v_e, ~] = EKF.unpack_x(ekf.x_est);
         x_est = Model.pack_x(p_e, q_e, v_e, z_gyr);
-        u = ctrl.update(x_est, t);
     else
-        u = ctrl.update(x, t);
+        x_est = x;
     end
-    body_sim.update([u; va_b]);
+    u_ctrl = ctrl.update(x_est, t);
+    body_sim.update([u_ctrl; va_b]);
     if sim_wind; wind_sim.update(); end
     
     % Logging and progress
-    log.update(z_gyr, z_mag, z_gps, u);
+    log.update(z_gyr, z_mag, z_gps, u_ctrl);
     prog.update(body_sim.t / t_max);
     i_sim = i_sim + 1;
 end
