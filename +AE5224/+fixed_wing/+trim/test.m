@@ -36,6 +36,7 @@ if open_loop
 else
     fprintf('Designing linear controller...\n');
     ctrl = Trim(model, x_st, u_st);
+    disp(ctrl);
 end
 
 % Simulate trim

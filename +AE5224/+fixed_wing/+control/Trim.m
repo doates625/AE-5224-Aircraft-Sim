@@ -33,6 +33,11 @@ classdef Trim < AE5224.control.Controller
             obj.alt_f = @(t) x_lon(5) - v_e(3) * t;
             obj.th_z_f = @(t) x_lat(5) + w_e(3) * t;
         end
+        
+        function disp(obj)
+            %DISP(obj) Display controller info
+            disp(obj.ctrl);
+        end
     end
     
     methods (Access = protected)

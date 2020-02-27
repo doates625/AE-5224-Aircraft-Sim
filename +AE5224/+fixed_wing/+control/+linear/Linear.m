@@ -83,5 +83,64 @@ classdef Linear < handle
             u_lat = ulat_to_u(u_lat, zeros(4, 1));
             u = u_lon + u_lat;
         end
+        
+        function disp(obj)
+            %DISP(obj) Display states, matrices, and eigenvalues
+            
+            % Title
+            fprintf('Aircraft Linear Controller:\n\n')
+            
+            % Lon Title
+            fprintf('Lon Linearization:\n\n');
+
+            % States
+            fprintf('Trim States:\n');
+            fprintf('- Velocity body x: %.2f [m/s]\n', obj.x_lon_st(1));
+            fprintf('- Velocity body z: %.2f [m/s]\n', obj.x_lon_st(2));
+            fprintf('- Pitch rate: %.2f [deg/s]\n', rad2deg(obj.x_lon_st(3)))
+            fprintf('- Pitch angle: %.2f [deg]\n\n', rad2deg(obj.x_lon_st(4)))
+
+            % Controls
+            fprintf('Trim Controls:\n');
+            fprintf('- Elevator: %.2f [deg]\n', rad2deg(obj.u_lon_st(1)))
+            fprintf('- Propeller: %.1f%%\n\n', 100 * obj.u_lon_st(2))
+
+            % Matrices
+            fprintf('State Matrices:\n');
+            fprintf('A_lon = \n');
+            disp(obj.A_lon);
+            fprintf('B_lon = \n');
+            disp(obj.B_lon);
+
+            % Eigenvalues
+            fprintf('Eigenvalues:\n');
+            disp(eig(obj.A_lon))
+            
+            % Lat Title
+            fprintf('Lat Linearization:\n\n');
+
+            % States
+            fprintf('Trim States:\n')
+            fprintf('- Velocity body y: %.2f [m/s]\n', obj.x_lat_st(1));
+            fprintf('- Roll rate: %.2f [deg/s]\n', rad2deg(obj.x_lat_st(2)));
+            fprintf('- Yaw rate: %.2f [deg/s]\n', rad2deg(obj.x_lat_st(3)));
+            fprintf('- Roll angle: %.2f [deg]\n\n', rad2deg(obj.x_lat_st(4)));
+
+            % Controls
+            fprintf('Trim Controls:\n');
+            fprintf('- Aileron: %.2f [deg]\n', rad2deg(obj.u_lat_st(1)));
+            fprintf('- Rudder: %.2f [deg]\n\n', rad2deg(obj.u_lat_st(2)));
+
+            % Matrices
+            fprintf('State Matrices:\n');
+            fprintf('A_lat = \n');
+            disp(obj.A_lat);
+            fprintf('B_lat = \n');
+            disp(obj.B_lat);
+
+            % Eigenvalues
+            fprintf('Eigenvalues:\n');
+            disp(eig(obj.A_lat));
+        end
     end
 end
