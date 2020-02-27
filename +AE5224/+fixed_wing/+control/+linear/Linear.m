@@ -26,15 +26,26 @@ classdef Linear < handle
             % Imports
             import('AE5224.fixed_wing.control.linear.lon.lon_lqr');
             import('AE5224.fixed_wing.control.linear.lat.lat_lqr');
-            import('AE5224.fixed_wing.control.make_lqr');
+            import('AE5224.fixed_wing.control.linear.make_lqr');
             import('AE5224.rigid_body.Model.unpack_x');
             import('quat.Quat');
 
-            % Construction
-            [obj.A_lon, obj.B_lon, obj.x_lon_st, obj.u_lon_st, obj.K_lon] = ...
-                lon_lqr(model, x_st, u_st);
-            [obj.A_lat, obj.B_lat, obj.x_lat_st, obj.u_lat_st, obj.K_lat] = ...
-                lat_lqr(model, x_st, u_st);
+            % Search for file
+            lut = FileLUT('ctrls');
+            id = [x_st; u_st];
+            try
+                % Load from file
+                obj = lut.get(id);
+            catch
+                % Construction
+                [obj.A_lon, obj.B_lon, obj.x_lon_st, obj.u_lon_st, ...
+                    obj.K_lon] = lon_lqr(model, x_st, u_st);
+                [obj.A_lat, obj.B_lat, obj.x_lat_st, obj.u_lat_st, ...
+                    obj.K_lat] = lat_lqr(model, x_st, u_st);
+                
+                % Save to file
+                lut.set(id, obj);
+            end
         end
         
         function u = update(obj, alt, th_z, x)

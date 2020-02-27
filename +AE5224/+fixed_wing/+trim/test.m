@@ -1,5 +1,5 @@
 function log = test(trim, open_loop, sim_wind, ekf_fb, t_max, del_t)
-%log = TEST(trim, open_loop, sim_wind, t_max, del_t)
+%log = TEST(trim, file, open_loop, sim_wind, t_max, del_t)
 %   Simulate and analyze trim condition
 %   
 %   Inputs:
