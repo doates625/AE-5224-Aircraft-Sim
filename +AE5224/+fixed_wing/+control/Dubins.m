@@ -1,13 +1,12 @@
-classdef Dubins
-    %DUBINS Summary of this class goes here
-    %   Detailed explanation goes here
+classdef Dubins < AE5224.control.Controller
+    %DUBINS Dubins fixed-wing path tracking controller
     
-    properties
-        Property1
+    properties (Access = protected)
+        path;   % Dubins path [AE5224.dubins.path.Path]
     end
     
     methods
-        function obj = Dubins(inputArg1,inputArg2)
+        function obj = Dubins(pa, ha, pb, hb, R);
             %DUBINS Construct an instance of this class
             %   Detailed explanation goes here
             obj.Property1 = inputArg1 + inputArg2;

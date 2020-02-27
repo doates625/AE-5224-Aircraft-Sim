@@ -1,4 +1,4 @@
-function c = circle(p, h, r, t)
+function c = circle(p, h, r, s)
 %c = CIRCLE(p, h, r, t
 %   Dubins circle center
 %   
@@ -6,12 +6,11 @@ function c = circle(p, h, r, t)
 %   - p = Position [x; y]
 %   - h = Heading [rad]
 %   - r = Turn radius
-%   - t = Direction ['L', 'R']
+%   - s = Sign [+1, -1]
 %   
 %   Outputs:
 %   - c = Center [x; y]
 
-sgn = (t == 'L') - (t == 'R');
-c = p + sgn * r * [+sin(h); -cos(h)];
+c = p - s * r * [+sin(h); -cos(h)];
 
 end

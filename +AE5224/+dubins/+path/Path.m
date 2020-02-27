@@ -12,8 +12,8 @@ classdef (Abstract) Path < handle
         h3;     % Heading at p3 [rad]
         c01;    % Circle center p0-p1 [x; y]
         c23;    % Circle center p2-p3 [x; y]
-        t01;    % Turn direction p0-p1 ['L', 'R']
-        t23;    % Turn direction p2-p3 ['L', 'R']
+        s01;    % Turn sign p0-p1 [-1, +1]
+        s23;    % Turn sign p2-p3 [-1, +1]
         r;      % Turn radius
         d01;    % Distance p0-p1
         d02;    % Distance p0-p2
@@ -34,7 +34,7 @@ classdef (Abstract) Path < handle
             
             % Imports
             import('AE5224.dubins.util.circle');
-            import('AE5224.dubins.util.angle');
+            import('AE5224.dubins.util.h_dif');
             
             % Copy args
             obj.p0 = pa;
@@ -42,12 +42,12 @@ classdef (Abstract) Path < handle
             obj.p3 = pb;
             obj.h3 = hb;
             obj.r = r;
-            obj.t01 = ta;
-            obj.t23 = tb;
+            obj.s01 = (ta == 'R') - (ta == 'L');
+            obj.s23 = (tb == 'R') - (tb == 'L');
             
             % Path params
-            obj.c01 = circle(obj.p0, obj.h0, obj.r, obj.t01);
-            obj.c23 = circle(obj.p3, obj.h3, obj.r, obj.t23);
+            obj.c01 = circle(obj.p0, obj.h0, obj.r, obj.s01);
+            obj.c23 = circle(obj.p3, obj.h3, obj.r, obj.s23);
             vc = obj.c23 - obj.c01;
             [hc, dc] = cart2pol(vc(1), vc(2));
             if ta == tb
@@ -62,8 +62,8 @@ classdef (Abstract) Path < handle
                 d12 = 2 * sqrt(0.25*dc^2 - obj.r^2);
             end
             obj.h2 = obj.h1;
-            d01 = r * angle(obj.h0, obj.h1, obj.t01);
-            d23 = r * angle(obj.h2, obj.h3, obj.t23);
+            d01 = r * h_dif(obj.h0, obj.h1, obj.s01);
+            d23 = r * h_dif(obj.h2, obj.h3, obj.s23);
             obj.d01 = d01;
             obj.d02 = obj.d01 + d12;
             obj.d03 = obj.d02 + d23;
@@ -71,21 +71,23 @@ classdef (Abstract) Path < handle
             obj.p2 = obj.get_12(obj.d02);
         end
         
-        function p = get(obj, d)
+        function [p, h] = get(obj, d)
             %p = GET(obj, d) Get point along path
-            %   - d = Array of absolute path distances [d1, ..., dn]
-            %   - p = Array of points on path [x1, ..., xn; y1, ..., yn]
+            %   - d = Absolute path distances [d1, ..., dn]
+            %   - p = Points on path [x1, ..., xn; y1, ..., yn]
+            %   - h = Headings on path [h1, ... hn] [rad]
             n = length(d);
             p = nan(2, n);
+            h = nan(1, n);
             for i = 1:n
                 if d(i) < 0
                     continue
                 elseif d(i) <= obj.d01
-                    p(:, i) = obj.get_01(d(i));
+                    [p(:, i), h(i)] = obj.get_01(d(i));
                 elseif d(i) <= obj.d02
-                    p(:, i) = obj.get_12(d(i));
+                    [p(:, i), h(i)] = obj.get_12(d(i));
                 elseif d(i) <= obj.d03
-                    p(:, i) = obj.get_23(d(i));
+                    [p(:, i), h(i)] = obj.get_23(d(i));
                 end
             end
         end
@@ -95,29 +97,29 @@ classdef (Abstract) Path < handle
             d = obj.d03;
         end
         
-        function plot(obj, h, n)
-            %PLOT(obj, n) Plot dubins path
-            %   - h = Figure handle [Figure, def = figure]
+        function plot(obj, fig, n)
+            %PLOT(obj, fig, n) Plot dubins path
+            %   - fig = Figure handle [Figure, def = figure]
             %   - n = Points to plot [int, def = 100]
             
             % Imports
             import('AE5224.dubins.util.plot_circ');
             
             % Default args
-            if nargin < 2, h = figure; end
+            if nargin < 2, fig = figure; end
             if nargin < 3, n = 100; end
             
             % Generate points
             d = linspace(0, obj.dist(), n);
-            p = obj.get(d);
+            [p, h] = obj.get(d);
             
             % Path plot
-            figure(h);
+            figure(fig);
             clf, hold on, grid on
             title('Dubins Path');
             xlabel('Y')
             ylabel('X')
-            plot(p(2, :), p(1, :), 'b-', 'Linewidth', 2);
+            plot3(p(2, :), p(1, :), h, 'b-', 'Linewidth', 2);
             plot_circ(obj.c01, obj.r, 'k--');
             plot_circ(obj.c23, obj.r, 'k--');
             axis equal
@@ -126,32 +128,43 @@ classdef (Abstract) Path < handle
     end
     
     methods (Access = protected)
-        function p = get_01(obj, d)
-            %p = GET_01(obj, d)
+        function [p, h] = get_01(obj, d)
+            %[p, h] = GET_01(obj, d)
             %   Get point along path from p0 to p1
             %   - d = Absolute distance along path
             %   - p = Point on path [x; y]
+            %   - h = Heading on path [rad]
             import('AE5224.dubins.util.rotate');
-            p = obj.c01 + rotate(obj.p0 - obj.c01, d / obj.r, obj.t01);
+            import('AE5224.dubins.util.h_add');
+            d0x = d;
+            a0x = d0x / obj.r;
+            p = rotate(obj.p0, obj.c01, a0x, obj.s01);
+            h = h_add(obj.h0, a0x, obj.s01);
         end
 
-        function p = get_12(obj, d)
-            %p = GET_12(obj, d)
+        function [p, h] = get_12(obj, d)
+            %[p, h] = GET_12(obj, d)
             %   Get point along path from p1 to p2
             %   - d = Absolute distance along path
             %   - p = Point on path [x; y]
-            import('AE5224.dubins.util.rotate');
-            p = obj.p1 + rotate([d - obj.d01; 0], obj.h1);
+            %   - h = Heading on path [rad]
+            d1x = d - obj.d01;
+            p = obj.p1 + d1x * [cos(obj.h1); sin(obj.h1)];
+            h = obj.h1;
         end
 
-        function p = get_23(obj, d)
-            %p = GET_23(obj, d)
+        function [p, h] = get_23(obj, d)
+            %[p, h] = GET_23(obj, d)
             %   Get point along path from p2 to p3
             %   - d = Absolute distance along path
             %   - p = Point on path [x; y]
+            %   - h = Heading on path [rad]
             import('AE5224.dubins.util.rotate');
-            p = obj.c23 + rotate(...
-                obj.p3 - obj.c23, (d - obj.d03) / obj.r, obj.t23);
+            import('AE5224.dubins.util.h_add');
+            d2x = d - obj.d02;
+            a2x = d2x / obj.r;
+            p = rotate(obj.p2, obj.c23, a2x, obj.s23);
+            h = h_add(obj.h2, a2x, obj.s23);
         end
     end
 end

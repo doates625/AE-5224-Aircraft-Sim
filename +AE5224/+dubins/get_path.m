@@ -23,9 +23,10 @@ paths = {@LSL, @LSR, @RSL, @RSR};
 best_path = [];
 best_dist = inf;
 for i = 1:4
-    % Try to make path
-    try path = paths{i}(pa, ha, pb, hb, r);
-    catch; continue; end
+    % Try to make path (TODO revert)
+    % try path = paths{i}(pa, ha, pb, hb, r);
+    % catch; continue; end
+    path = paths{i}(pa, ha, pb, hb, r);
     
     % Compare to best
     dist = path.dist();
