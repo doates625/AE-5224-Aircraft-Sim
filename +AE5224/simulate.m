@@ -23,23 +23,21 @@ import('AE5224.Wind');
 import('AE5224.sensors.Gyro');
 import('AE5224.sensors.Acc');
 import('AE5224.sensors.Mag');
-import('AE5224.sensors.Air');
 import('AE5224.sensors.GPS');
 import('AE5224.EKF');
 import('timing.ProgDisp');
 
 % Create simulators
 f_sim = 1 / del_t;
-[p_e, q_e, vb_e, ~] = Model.unpack_x(x_st);
+[p_e, q_e, v_e, ~] = Model.unpack_x(x_st);
 body_sim = Sim(model, x_st, del_t);
-wind_sim = Wind(norm(vb_e), del_t);
+wind_sim = Wind(norm(v_e), del_t);
 
 % Create sensors
 f_imu = 100.0;
 gyro = Gyro(f_imu);
 accel = Acc(f_imu);
 mag = Mag();
-air = Air();
 
 % Create GPS
 f_gps = 1.0;
@@ -48,7 +46,7 @@ n_gps = round(f_sim / f_gps);
 
 % Create EKF
 b_e = get_b();
-x_est = EKF.pack_x(q_e, p_e, vb_e, b_e);
+x_est = EKF.pack_x(q_e, p_e, v_e, b_e);
 cov_x = zeros(13);
 cov_x(05:07, 05:07) = gps.cov_p;
 cov_x(08:10, 08:10) = gps.cov_v;
@@ -63,7 +61,7 @@ ekf = EKF(x_est, cov_x, ...
 
 % Create logger
 n_log = ceil(t_max / del_t) + 1;
-log = log_cls(body_sim, wind_sim, ekf, n_log);
+log = log_cls(body_sim, ekf, n_log);
 
 % Run simulator
 fprintf('Simulating trim...\n');
@@ -84,10 +82,6 @@ while body_sim.t < t_max
     ekf.predict(u_ekf);
     ekf.correct_mag(z_mag);
     
-    % Simulate airspeed sensor
-    va_b = wind_sim.va_b;
-    z_air = air.measure(x, va_b);
-    
     % Simulate GPS
     if ~mod(i_sim, n_gps)
         z_gps = gps.measure(x);
@@ -96,10 +90,13 @@ while body_sim.t < t_max
         z_gps = nan(6, 1);
     end
     
+    % Simulate wind
+    va_b = wind_sim.update();
+    
     % Simulate dynamics and control
     if ekf_fb
-        [q_e, p_e, vb_e, ~] = EKF.unpack_x(ekf.x_est);
-        x_est = Model.pack_x(p_e, q_e, vb_e, z_gyr);
+        [q_e, p_e, v_e, ~] = EKF.unpack_x(ekf.x_est);
+        x_est = Model.pack_x(p_e, q_e, v_e, z_gyr);
         u = ctrl.update(x_est, t);
     else
         u = ctrl.update(x, t);
@@ -108,7 +105,7 @@ while body_sim.t < t_max
     if sim_wind; wind_sim.update(); end
     
     % Logging and progress
-    log.update(u, z_gyr, z_mag, z_air, z_gps);
+    log.update(z_gyr, z_mag, z_gps, u);
     prog.update(body_sim.t / t_max);
     i_sim = i_sim + 1;
 end

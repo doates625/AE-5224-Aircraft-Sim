@@ -5,85 +5,79 @@ classdef Log < handle
     
     properties (SetAccess = protected)
         % Data sources
-        sim_body;   % Body simulator [AE5224.rigid_body.Sim]
-        sim_wind;   % Wind simulator [AE5224.Wind]
-        ekf;        % Kalman filter [AE5224.EKF]
-        log_t;      % Timestamp log [s]
-        log_i;      % Log index [cnts]
+        sim;    % Body simulator [AE5224.rigid_body.Sim]
+        ekf;    % Kalman filter [AE5224.EKF]
+        log_t;  % Timestamp log [s]
+        log_i;  % Log index [cnts]
         
         % Actual state logs
         p_e_act;    % Position Earth [m]
         q_e_act;    % Attitude Earth [quat]
-        vb_e_act;   % Velocity Earth [m/s]
-        va_b_act;   % Air velocity Body [m/s]
+        v_e_act;    % Velocity Earth [m/s]
         w_b_act;    % Angular velocity Body [rad/s]
         b_e_act;    % Magnetic field Earth [uT]
         
         % Estimated state logs
         p_e_est;    % Position Earth [m]
         q_e_est;    % Attitude Earth [quat]
-        vb_e_est;   % Velocity Earth [m/s]
+        v_e_est;    % Velocity Earth [m/s]
         b_e_est;    % Magnetic field Earth [uT]
         
         % Estimate std logs
         p_e_std;    % Position Earth [m]
         q_e_std;    % Attitude Earth [quat]
-        vb_e_std;   % Velocity Earth [m/s]
+        v_e_std;    % Velocity Earth [m/s]
         b_e_std;    % Magnetic field Earth [uT]
         
         % Measurement logs
         p_e_mea;    % Position Earth [m]
-        vb_e_mea;   % Velocity Earth [m]
-        va_b_mea;   % Air velocity Body [m/s]
+        v_e_mea;    % Velocity Earth [m]
         w_b_mea;    % Angular velocity Body [rad/s]
         b_e_mea;    % Magnetic field Earth [uT]
     end
     
     methods (Access = public)
-        function obj = Log(sim_body, sim_wind, ekf, n)
-            %obj = LOG(sim_body, sim_wind, ekf, n)
+        function obj = Log(sim, ekf, n)
+            %obj = LOG(sim, ekf, n)
             %   Construct new log
-            %   - sim_body = Body simulator [AE5224.rigid_body.Sim]
-            %   - sim_wind = Wind simulator [AE5224.Wind]
+            %   - sim = Simulator [AE5224.rigid_body.Sim]
             %   - ekf = Kalman filter [AE5224.EKF]
             %   - n = Log pre-allocation length [cnts]
             
             % Copy args
-            obj.sim_body = sim_body;
-            obj.sim_wind = sim_wind;
+            obj.sim = sim;
             obj.ekf = ekf;
             
             % Pre-allocate logs
             obj.log_t = nan(1, n);
             obj.p_e_act = nan(3, n);
             obj.q_e_act = nan(4, n);
-            obj.vb_e_act = nan(3, n);
+            obj.v_e_act = nan(3, n);
             obj.w_b_act = nan(3, n);
-            obj.va_b_act = nan(3, n);
             obj.b_e_act = nan(3, n);
             obj.p_e_est = nan(3, n);
             obj.q_e_est = nan(4, n);
-            obj.vb_e_est = nan(3, n);
+            obj.v_e_est = nan(3, n);
             obj.b_e_est = nan(3, n);
             obj.p_e_std = nan(3, n);
             obj.q_e_std = nan(4, n);
-            obj.vb_e_std = nan(3, n);
+            obj.v_e_std = nan(3, n);
             obj.b_e_std = nan(3, n);
             obj.p_e_mea = nan(3, n);
-            obj.vb_e_mea = nan(3, n);
+            obj.v_e_mea = nan(3, n);
             obj.w_b_mea = nan(3, n);
-            obj.va_b_mea = nan(3, n);
             obj.b_e_mea = nan(3, n);
+            
+            % Log index
             obj.log_i = 1;
         end
         
-        function update(obj, z_gyr, z_mag, z_air, z_gps)
+        function update(obj, z_gyr, z_mag, z_gps)
             %UPDATE(obj, z_gyr, z_mag, z_gps)
             %   Add states and measurements to log
-            %   - z_gyr = Gyro reading [opt]
-            %   - z_mag = Mag reading [opt]
-            %   - z_air = Airspeed reading [opt]
-            %   - z_gps = GPS reading [opt]
+            %   - z_gyr = Gyro reading
+            %   - z_mag = Mag reading
+            %   - z_gps = GPS reading
 
             % Imports
             import('AE5224.const.get_b');
@@ -93,51 +87,39 @@ classdef Log < handle
             import('quat.Quat');
             
             % Simulation logs
-            [p_e_act_, q_e_act_, vb_e_act_, w_b_act_] = ...
-                Model.unpack_x(obj.sim_body.x);
-            va_b = obj.sim_wind.va_b;
-            obj.log_t(obj.log_i) = obj.sim_body.t;
+            [p_e_act_, q_e_act_, v_e_act_, w_b_act_] = ...
+                Model.unpack_x(obj.sim.x);
+            obj.log_t(obj.log_i) = obj.sim.t;
             obj.p_e_act(:, obj.log_i) = p_e_act_;
             obj.q_e_act(:, obj.log_i) = q_e_act_;
-            obj.vb_e_act(:, obj.log_i) = vb_e_act_;
-            obj.va_b_act(:, obj.log_i) = va_b;
+            obj.v_e_act(:, obj.log_i) = v_e_act_;
             obj.w_b_act(:, obj.log_i) = w_b_act_;
             obj.b_e_act(:, obj.log_i) = get_b();
             
             % Kalman filter logs
-            [q_e_est_, p_e_est_, vb_e_est_, b_e_est_] = ...
-                EKF.unpack_x(obj.ekf.x_est);
-            R_eb = Quat(q_e_est_).inv().mat_rot();
+            x_est = obj.ekf.x_est;
+            [q_e_est_, p_e_est_, v_e_est_, b_e_est_] = EKF.unpack_x(x_est);   
             obj.p_e_est(:, obj.log_i) = p_e_est_;
             obj.q_e_est(:, obj.log_i) = q_e_est_;
-            obj.vb_e_est(:, obj.log_i) = vb_e_est_;
+            obj.v_e_est(:, obj.log_i) = v_e_est_;
             obj.b_e_est(:, obj.log_i) = b_e_est_;
             
             % Kalman filter std logs
             x_std = sqrt(diag(obj.ekf.cov_x));
-            [q_e_std_, p_e_std_, vb_e_std_, b_e_std_] = ...
-                EKF.unpack_x(x_std);
+            [q_e_std_, p_e_std_, v_e_std_, b_e_std_] = EKF.unpack_x(x_std);
             obj.p_e_std(:, obj.log_i) = p_e_std_;
             obj.q_e_std(:, obj.log_i) = q_e_std_;
-            obj.vb_e_std(:, obj.log_i) = vb_e_std_;
+            obj.v_e_std(:, obj.log_i) = v_e_std_;
             obj.b_e_std(:, obj.log_i) = b_e_std_;
             
             % Measurement logs
-            if nargin >= 2
-                obj.w_b_mea(:, obj.log_i) = z_gyr;
-            end
-            if nargin >= 3
-                obj.b_e_mea(:, obj.log_i) = Quat(q_e_est_).rotate(z_mag);
-            end
-            if nargin >= 4
-                obj.va_b_mea(:, obj.log_i) = ...
-                    R_eb * obj.vb_e_est(:, obj.log_i) - z_air;
-            end
-            if nargin >= 5
-                [p_e_mea_, vb_e_mea_] = GPS.unpack_z(z_gps);
-                obj.p_e_mea(:, obj.log_i) = p_e_mea_;
-                obj.vb_e_mea(:, obj.log_i) = vb_e_mea_;
-            end
+            [p_e_mea_, v_e_mea_] = GPS.unpack_z(z_gps);
+            w_b_mea_ = z_gyr;
+            b_e_mea_ = Quat(q_e_est_).rotate(z_mag);
+            obj.p_e_mea(:, obj.log_i) = p_e_mea_;
+            obj.v_e_mea(:, obj.log_i) = v_e_mea_;
+            obj.w_b_mea(:, obj.log_i) = w_b_mea_;
+            obj.b_e_mea(:, obj.log_i) = b_e_mea_;
             
             % Increment log counter
             obj.log_i = obj.log_i + 1;
@@ -147,9 +129,8 @@ classdef Log < handle
             %PLOT(obj) Generate all state plots
             obj.plot_p_e();
             obj.plot_q_e();
-            obj.plot_vb_e();
+            obj.plot_v_e();
             obj.plot_w_b();
-            obj.plot_va_b();
             obj.plot_b_e();
             obj.plot_traj(true);
             obj.plot_traj(false);
@@ -172,13 +153,13 @@ classdef Log < handle
                 obj.q_e_std});
         end
         
-        function plot_vb_e(obj)
-            %PLOT_VB_E(obj) Plot body velocity Earth
+        function plot_v_e(obj)
+            %PLOT_V_E(obj) Plot body velocity Earth
             obj.plot_state('Velocity Earth', 'Vel [m/s]', 'XYZ', {...
-                obj.vb_e_act, ...
-                obj.vb_e_est, ...
-                obj.vb_e_std, ...
-                obj.vb_e_mea});
+                obj.v_e_act, ...
+                obj.v_e_est, ...
+                obj.v_e_std, ...
+                obj.v_e_mea});
         end
         
         function plot_w_b(obj)
@@ -186,13 +167,6 @@ classdef Log < handle
             obj.plot_state('Angular Velocity Body', 'Vel [rad/s]', 'XYZ', {...
                 obj.w_b_act, ...
                 obj.w_b_mea});
-        end
-        
-        function plot_va_b(obj)
-            %PLOT_VA_B(obj) Plot wind velocity Earth
-            obj.plot_state('Air Velocity Body', 'Vel [m/s]', 'XYZ', {...
-                obj.va_b_act, ...
-                obj.va_b_mea});
         end
         
         function plot_b_e(obj)
@@ -242,7 +216,7 @@ classdef Log < handle
             
             % Plot attitude
             n = length(obj.log_t);
-            del_n = ceil(1 / obj.sim_body.del_t);
+            del_n = ceil(1 / obj.sim.del_t);
             vec_len = max(1, 0.02 * max(range(obj.p_e_act, 2)));
             for i = 1 : del_n : n
                 % Attitude actual

@@ -10,33 +10,31 @@ classdef Log < AE5224.Log
     end
     
     methods (Access = public)
-        function obj = Log(sim_body, sim_wind, ekf, n)
-            %obj = LOG(sim_body, sim_wind, ekf, n)
+        function obj = Log(sim, ekf, n)
+            %obj = LOG(sim, ekf, n)
             %   Construct new log
-            %   - sim_body = Body simulator [AE5224.rigid_body.Sim]
-            %   - sim_wind = Wind simulator [AE5224.Wind]
+            %   - sim = Simulator [AE5224.rigid_body.Sim]
             %   - ekf = Kalman filter [AE5224.EKF]
             %   - n = Log pre-allocation length [cnts]
-            obj@AE5224.Log(sim_body, sim_wind, ekf, n)
+            obj@AE5224.Log(sim, ekf, n)
             obj.d_e = nan(1, n);
             obj.d_a = nan(1, n);
             obj.d_r = nan(1, n);
             obj.d_p = nan(1, n);
         end
         
-        function update(obj, u, varargin)
-            %UPDATE(obj, u, z_gyr, z_mag, z_gps)
+        function update(obj, z_gyr, z_mag, z_gps, u)
+            %UPDATE(obj, z_gyr, z_mag, z_gps, u)
             %   Add states and measurements to log
-            %   - u = Control input [d_e; d_a; d_r; d_p]
             %   - z_gyr = Gyro reading [opt]
             %   - z_mag = Mag reading [opt]
-            %   - z_air = Airspeed reading [opt]
             %   - z_gps = GPS reading [opt]
+            %   - u = Control input [d_e; d_a; d_r; d_p]
             obj.d_e(:, obj.log_i) = u(1);
             obj.d_a(:, obj.log_i) = u(2);
             obj.d_r(:, obj.log_i) = u(3);
             obj.d_p(:, obj.log_i) = u(4);
-            update@AE5224.Log(obj, varargin{:});
+            update@AE5224.Log(obj, z_gyr, z_mag, z_gps);
         end
         
         function plot(obj)
