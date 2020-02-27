@@ -32,7 +32,7 @@ model = Model();
 
 % Control design
 if open_loop
-    ctrl = OpenLoop(u_st, model.u_min, model.u_max);
+    ctrl = OpenLoop(model, u_st);
 else
     fprintf('Designing linear controller...\n');
     ctrl = Trim(model, x_st, u_st);

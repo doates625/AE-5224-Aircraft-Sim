@@ -4,18 +4,15 @@ classdef (Abstract) Controller
     %   Author: Dan Oates (WPI Class of 2020)
     
     properties (SetAccess = protected)
-        u_min;  % Min controls vector
-        u_max;  % Max controls vector
+        model;  % Model [AE5224.Model]
     end
     
     methods (Access = public)
-        function obj = Controller(u_min, u_max)
-            %obj = CONTROLLER(u_min, u_max)
+        function obj = Controller(model)
+            %obj = CONTROLLER(model)
             %   Construct controller
-            %   - u_min = Min controls vector
-            %   - u_max = Max controls vector
-            obj.u_min = u_min;
-            obj.u_max = u_max;
+            %   - model = Aircraft model [AE5224.Model]
+            obj.model = model;
         end
         
         function u = update(obj, x, t)
@@ -26,7 +23,7 @@ classdef (Abstract) Controller
             %   - u = Saturated control vector
             import('controls.clamp');
             u = obj.update_(x, t);
-            u = clamp(u, obj.u_min, obj.u_max);
+            u = clamp(u, obj.model.u_min, obj.model.u_max);
         end
     end
     

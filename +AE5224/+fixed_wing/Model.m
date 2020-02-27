@@ -1,4 +1,4 @@
-classdef Model < AE5224.rigid_body.Model
+classdef Model < AE5224.Model
     %MODEL Class for fixed-wing aircraft models
     %   
     %   Input vector u:
@@ -64,10 +64,6 @@ classdef Model < AE5224.rigid_body.Model
         C_Mz_wz;    % Angle rate z
         C_Mz_da;    % Aileron
         C_Mz_dr;    % Rudder
-        
-        % Control limits
-        u_min;      % Min controls vector
-        u_max;      % Max controls vector
     end
     
     methods (Access = public)
@@ -88,7 +84,9 @@ classdef Model < AE5224.rigid_body.Model
                 [+I_xx, -I_xy, -I_xz]; ...
                 [-I_xy, +I_yy, -I_yz]; ...
                 [-I_xz, -I_yz, +I_zz]];
-            obj@AE5224.rigid_body.Model(m, I_b);
+            u_min = [-deg2rad(20)*ones(3, 1); 0];
+            u_max = [+deg2rad(20)*ones(3, 1); 1];
+            obj@AE5224.Model(m, I_b, u_min, u_max);
             
             % Dimensional constants
             obj.S_wn = 0.55;        % Wing planform area [m^2]
@@ -143,10 +141,6 @@ classdef Model < AE5224.rigid_body.Model
             obj.C_Mz_wz = -0.35;    % Angle rate z
             obj.C_Mz_da = 0.08;     % Aileron
             obj.C_Mz_dr = -0.032;   % Rudder
-            
-            % Control limits
-            obj.u_min = [-deg2rad(20)*ones(3, 1); 0];
-            obj.u_max = [+deg2rad(20)*ones(3, 1); 1];
         end
         
         function [F_b, M_b] = forces(obj, x, u)

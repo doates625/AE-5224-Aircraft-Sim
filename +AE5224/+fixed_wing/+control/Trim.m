@@ -11,7 +11,7 @@ classdef Trim < AE5224.control.Controller
         function obj = Trim(model, x_st, u_st)
             %obj = TRIM(model, x_st, u_st)
             %   Construct trim tracking controller
-            %   - model = Fixed-wing model [AE5224.fixed_wing.Body]
+            %   - model = Fixed-wing model [AE5224.fixed_wing.Model]
             % 	- x_st = Trim state vector [p_e; q_e; v_e; w_b]
             %   - u_st = Trim control vector [d_e; d_a; d_r; d_p]
             %   - file = Load and save file [char]
@@ -24,7 +24,7 @@ classdef Trim < AE5224.control.Controller
             import('quat.Quat');
             
             % Construction
-            obj@AE5224.control.Controller(model.u_min, model.u_max);
+            obj@AE5224.control.Controller(model);
             x_lon = x_to_xlon(x_st);
             x_lat = x_to_xlat(x_st);
             [~, q_e, v_e, w_b] = unpack_x(x_st);

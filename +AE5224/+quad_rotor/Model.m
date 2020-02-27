@@ -1,4 +1,4 @@
-classdef Model < AE5224.rigid_body.Model
+classdef Model < AE5224.Model
     %MODEL Quadrotor aircraft rigid body model
     %   
     %   Modeling assumptions:
@@ -11,8 +11,6 @@ classdef Model < AE5224.rigid_body.Model
         L;      % CM-to-prop distance [m]
         k_F;    % Motor force constant [N/rpm^2]
         k_M;    % Motor torque constant [N*m/rpm^2]
-        u_min;  % Min controls vector
-        u_max;  % Max controls vector
     end
     
     methods (Access = public)
@@ -27,14 +25,14 @@ classdef Model < AE5224.rigid_body.Model
             I_yy = 2.32e-03;
             I_zz = 4.00e-03;
             I_b = diag([I_xx, I_yy, I_zz]);
-            obj@AE5224.rigid_body.Model(m, I_b);
+            u_min = zeros(4, 1);
+            u_max = 9000 * ones(4, 1);
+            obj@AE5224.Model(m, I_b, u_min, u_max);
             
             % Quadrotor constants
             obj.L = 0.175;
             obj.k_F = 6.11e-08;
             obj.k_M = 1.50e-09;
-            obj.u_min = zeros(4, 1);
-            obj.u_max = 9000 * ones(4, 1);
         end
         
         function [F_b, M_b] = forces(obj, x, u)

@@ -8,19 +8,12 @@ classdef OpenLoop < AE5224.control.Controller
     end
     
     methods (Access = public)
-        function obj = OpenLoop(u_st, u_min, u_max)
-            %obj = OPENLOOP(u_st)
+        function obj = OpenLoop(model, u_st)
+            %obj = OPENLOOP(model, u_st)
             %   Construct open-loop controller
+            %   - model = Aircraft model [AE5224.Model]
             %   - u_st = Trim control vector
-            %   - u_min = Min controls vector
-            %   - u_max = Max controls vector
-            
-            % Default args
-            if nargin < 2, u_min = -inf(size(u_st)); end
-            if nargin < 3, u_max = +inf(size(u_st)); end
-            
-            % Construction
-            obj@AE5224.control.Controller(u_min, u_max);
+            obj@AE5224.control.Controller(model);
             obj.u_st = u_st;
         end
     end

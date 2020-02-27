@@ -51,7 +51,7 @@ fprintf('- Prop 3: %.0f [rpm]\n', u_st(3));
 fprintf('- Prop 4: %.0f [rpm]\n\n', u_st(4));
 
 % Simulate trim
-ctrl = OpenLoop(u_st, model.u_min, model.u_max);
+ctrl = OpenLoop(model, u_st);
 sim_wind = false;
 ekf_fb = false;
 log = sim(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
