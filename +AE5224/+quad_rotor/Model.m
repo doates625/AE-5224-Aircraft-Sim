@@ -35,13 +35,14 @@ classdef Model < AE5224.Model
             obj.k_M = 1.50e-09;
         end
         
-        function [F_b, M_b] = forces(obj, x, u)
-            %[F_b, M_b] = FORCES(obj, x, u)
+        function [F_b, M_b] = forces(obj, x, u, ~)
+            %[F_b, M_b] = FORCES(obj, x, u, w)
             %   Compute body-frame net forces and moments
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
-            %   - u = Input vector [w_p1; w_p2; w_p3; w_p4; va_b]
+            %   - u = Input vector [w_p1; w_p2; w_p3; w_p4]
+            %   - w = Disturbance [va_b]
             %   
             %   Outputs:
             %   - F_b = Net force vector [N]

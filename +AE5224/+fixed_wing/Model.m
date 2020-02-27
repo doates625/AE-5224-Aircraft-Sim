@@ -6,6 +6,8 @@ classdef Model < AE5224.Model
     %   - d_a = Aileron angle [rad]
     %   - d_r = Rudder angle [rad]
     %   - d_p = Prop throttle [0-1]
+    %   
+    %   Disturbance vector w:
     %   - va_b = Air velocity Body [m/s]
     %   
     %   Author: Dan Oates (WPI Class of 2020)
@@ -143,13 +145,14 @@ classdef Model < AE5224.Model
             obj.C_Mz_dr = -0.032;   % Rudder
         end
         
-        function [F_b, M_b] = forces(obj, x, u)
+        function [F_b, M_b] = forces(obj, x, u, w)
             %[F_b, M_b] = FORCES(obj, x, u)
             %   Compute body-frame net forces and moments
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
-            %   - u = Input vector [d_e; d_a; d_r; d_p; va_b]
+            %   - u = Input vector [d_e; d_a; d_r; d_p]
+            %   - w = Disturbance [va_b]
             %   
             %   Outputs:
             %   - F_b = Net force vector [N]
@@ -174,7 +177,7 @@ classdef Model < AE5224.Model
             d_a = u(2);
             d_r = u(3);
             d_p = u(4);
-            va_b = u(5:7);
+            va_b = w;
             
             % Air-relative velocity
             R_eb = Quat(q_e).inv().mat_rot();

@@ -65,13 +65,14 @@ classdef (Abstract) Model < handle
             obj.I_b = I_b;
         end
         
-        function [F_b, M_b] = forces(~, ~, u)
-            %[F_b, M_b] = FORCES(obj, x, u)
+        function [F_b, M_b] = forces(~, ~, u, ~)
+            %[F_b, M_b] = FORCES(obj, x, u, w)
             %   Compute body-frame net forces and moments
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
             %   - u = Input vector [F_b; M_b]
+            %   - w = Disturbance vector []
             %   
             %   Outputs:
             %   - F_b = Net force vector [N]
@@ -80,17 +81,18 @@ classdef (Abstract) Model < handle
             M_b = u(4:6);
         end
         
-        function x_dot = dynamics(obj, x, u)
-            %x_dot = DYNAMICS(obj, x, u)
+        function x_dot = dynamics(obj, x, u, w)
+            %x_dot = DYNAMICS(obj, x, u, w)
             %   Compute state derivative
             %   
             %   Inputs:
             %   - x = State vector [p_e; q_e; v_e; w_b]
             %   - u = Input vector [F_b; M_b]
+            %   - w = Disturbance vector []
             %   
             %   Outputs:
             %   - x_dot = State derivative
-            [F_b, M_b] = obj.forces(x, u);
+            [F_b, M_b] = obj.forces(x, u, w);
             x_dot = obj.force_dynamics(x, F_b, M_b);
         end
     end

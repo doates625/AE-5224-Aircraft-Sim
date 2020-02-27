@@ -99,7 +99,7 @@ while body_sim.t < t_max
         x_est = x;
     end
     u_ctrl = ctrl.update(x_est, t);
-    body_sim.update([u_ctrl; va_b]);
+    body_sim.update(u_ctrl, va_b);
     if sim_wind; wind_sim.update(); end
     
     % Logging and progress

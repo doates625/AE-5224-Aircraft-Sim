@@ -25,12 +25,13 @@ classdef Sim < handle
             obj.x = x_init;
         end
         
-        function update(obj, u)
+        function update(obj, u, w)
             %UPDATE(obj, u)
             %   Run one simulation loop
             %   
             %   Inputs:
             %   - u = Input vector
+            %   - w = Disturbance vector
             
             % Imports
             import('AE5224.rigid_body.Model.unpack_x');
@@ -38,7 +39,7 @@ classdef Sim < handle
             import('runge_kutta.rk4');
             
             % RK4 integration
-            dx_dt = @(t, x) obj.model.dynamics(x, u);
+            dx_dt = @(t, x) obj.model.dynamics(x, u, w);
             obj.x = rk4(dx_dt, 0, obj.x, obj.del_t);
             obj.t = obj.t + obj.del_t;
             

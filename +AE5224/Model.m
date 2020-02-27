@@ -20,5 +20,21 @@ classdef Model < AE5224.rigid_body.Model
             obj.u_min = u_min;
             obj.u_max = u_max;
         end
+        
+        function x_dot = dynamics(obj, x, u, w)
+            %x_dot = DYNAMICS(obj, x, u, w)
+            %   Compute state derivative
+            %   
+            %   Inputs:
+            %   - x = State vector
+            %   - u = Input vector
+            %   - w = Disturbance vector
+            %   
+            %   Outputs:
+            %   - x_dot = State derivative
+            import('controls.clamp');
+            u = clamp(u, obj.u_min, obj.u_max);
+            x_dot = dynamics@AE5224.rigid_body.Model(obj, x, u, w);
+        end
     end
 end
