@@ -1,5 +1,5 @@
-function [K, Q, R] = make_lqr(A, B, dx_max, u_st, u_min, u_max, verbose)
-%[K, Q, R] = MAKE_LQR(A, B, dx_max, u_st, u_min, u_max, verbose)
+function [K, Q, R] = make_lqr(A, B, dx_max, u_st, u_min, u_max)
+%[K, Q, R] = MAKE_LQR(A, B, dx_max, u_st, u_min, u_max)
 %   Design anti-saturation LQR
 %   
 %   This function designs a feedback gain K for the linearized system:
@@ -16,20 +16,15 @@ function [K, Q, R] = make_lqr(A, B, dx_max, u_st, u_min, u_max, verbose)
 %   Inputs:
 %   - A = State matrix
 %   - B = Input matrix
-%   - x_st = Trim state
 %   - dx_max = Max state devs
 %   - u_st = Trim controls
 %   - u_min = Min controls
 %   - u_max = Max controls
-%   - verbose = Print flag [logical, def = true]
 %   
 %   Outputs:
 %   - K = Feedback matrix
 %   - Q = State cost matrix
 %   - R = Input cost matrix
-
-% Default args
-if nargin < 7, verbose = true; end
 
 % Initial costs
 n = length(dx_max);
@@ -65,15 +60,9 @@ while sat
     end
 end
 
-% Printouts
-if verbose
-    disp('LQR Design:')
-    disp('Q = ')
-    disp(Q)
-    disp('R = ')
-    disp(R)
-    disp('K = ')
-    disp(K)
+% Verify changes
+if any(diag(R) == 1)
+    error('Initial R too high.');
 end
 
 end

@@ -17,7 +17,7 @@ clc
 % Imports
 import('AE5224.fixed_wing.Model');
 import('AE5224.fixed_wing.trim.solve');
-import('AE5224.fixed_wing.control.Controller');
+import('AE5224.fixed_wing.control.Trim');
 import('AE5224.fixed_wing.Log');
 import('AE5224.control.OpenLoop');
 import('AE5224.sim');
@@ -32,13 +32,10 @@ model = Model();
 
 % Control design
 if open_loop
-    fprintf('Linearizing...\n');
-    AE5224.fixed_wing.control.lon.lin_model(model, x_st, u_st);
-    AE5224.fixed_wing.control.lat.lin_model(model, x_st, u_st);
     ctrl = OpenLoop(u_st, model.u_min, model.u_max);
 else
     fprintf('Designing linear controller...\n');
-    ctrl = Controller(model, x_st, u_st);
+    ctrl = Trim(model, x_st, u_st);
 end
 
 % Simulate trim
