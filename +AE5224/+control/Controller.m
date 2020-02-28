@@ -1,4 +1,4 @@
-classdef (Abstract) Controller
+classdef (Abstract) Controller < handle
     %CONTROLLER Superclass for UAV control systems
     %   
     %   Author: Dan Oates (WPI Class of 2020)
@@ -24,6 +24,12 @@ classdef (Abstract) Controller
             import('controls.clamp');
             u = obj.update_(x, t);
             u = clamp(u, obj.model.u_min, obj.model.u_max);
+        end
+        
+        function fin = finished(~)
+            %fin = FINISHED(obj)
+            %   Return true if controller has finished
+            fin = false;
         end
     end
     

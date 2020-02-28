@@ -68,7 +68,7 @@ fprintf('Simulating trim...\n');
 prog = ProgDisp();
 prog.start();
 i_sim = 1;
-while body_sim.t < t_max
+while body_sim.t < t_max && ~ctrl.finished()
     
     % State and time
     x = body_sim.x;

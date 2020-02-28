@@ -1,7 +1,11 @@
-function path1()
-%PATH1() Test Dubins Path 1
+function log = path1(ic)
+%PATH1(ic)
+%   Test Dubins Path 1
 %   
-%   Parameters:
+%   Inputs:
+%   - ic = Initial condition ID [1...3]
+%   
+%   Constants:
 %   - p(0) = [0, 0, -0.1] [km]
 %   - h(0) = 0 deg
 %   - p(T) = [1, 1, -0.1] [km]
@@ -11,12 +15,19 @@ function path1()
 import('AE5224.fixed_wing.plan.test');
 
 % Parameters
-pa = 1000 * [0; 0];
-ha = deg2rad(0);
-pb = 1000 * [1; 1];
-hb = deg2rad(0);
+p_a = [0.0; 0.0; -0.10];
+h_a = deg2rad(0);
+p_b = [1.0; 1.0; -0.10];
+h_b = deg2rad(0);
+
+% Initial conditions
+switch ic
+    case 1, p_i = [0.1; 0.0; -0.11]; h_i = 00;
+    case 2, p_i = [0.5; 0.5; -0.09]; h_i = 35;
+    case 3, p_i = [0.1; 0.5; -0.10]; h_i = 90;
+end
 
 % Test path
-test(pa, ha, pb, hb);
+log = test(p_a, h_a, p_b, h_b, p_i, h_i);
 
 end

@@ -1,4 +1,4 @@
-function path2()
+function log = path2()
 %PATH1() Test Dubins Path 2
 %   
 %   Parameters:
@@ -11,12 +11,14 @@ function path2()
 import('AE5224.fixed_wing.plan.test');
 
 % Parameters
-pa = 1000 * [1; 1];
-ha = deg2rad(0);
-pb = 1000 * [1.25; 1];
-hb = deg2rad(90);
+p_a = [1.00; 1.00; -0.10];
+h_a = 0;
+p_b = [1.25; 1.00; -0.10];
+h_b = 90;
+p_i = p_a;
+h_i = h_a;
 
 % Test path
-test(pa, ha, pb, hb);
+log = test(p_a, h_a, p_b, h_b, p_i, h_i);
 
 end
