@@ -31,8 +31,8 @@ for i_p = 1:4
             fig = figure;
             fig.Name = [cls(end-2:end) ' Section ' int2str(i_s)];
             path.plot(fig);
-            x = -10:0.5:+10;
-            y = -10:0.5:+10;
+            x = -7:0.5:+7;
+            y = -7:0.5:+7;
             p_sect = zeros(2, 0);
             for i_x = 1:length(x)
                 for i_y = 1:length(y)
@@ -43,6 +43,8 @@ for i_p = 1:4
                 end
             end
             plot(p_sect(2, :), p_sect(1, :), 'rx', 'DisplayName', 'Sect')
+            xlim([-7, +7])
+            ylim([-7, +7])
             drawnow
         end
         fprintf('Generated %s path (dist = %.1f).\n', names{i_p}, path.dist());
