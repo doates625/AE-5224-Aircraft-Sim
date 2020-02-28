@@ -1,5 +1,5 @@
 function log = path2()
-%PATH1() Test Dubins Path 2
+%PATH2() Test Dubins Path 2
 %   
 %   Parameters:
 %   - p(0) = [1, 1, -0.1] [km]

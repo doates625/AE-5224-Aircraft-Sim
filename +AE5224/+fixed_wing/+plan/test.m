@@ -80,6 +80,7 @@ ctrl = Dubins(model, path, vel, alt);
 % Simulation
 sim_wind = true;
 ekf_fb = true;
-log = sim(model, ctrl, sim_wind, ekf_fb, x_st, time, 0.01, @Log);
+del_t = 0.01;
+log = sim(model, ctrl, sim_wind, ekf_fb, x_st, time, del_t, @Log);
 
 end

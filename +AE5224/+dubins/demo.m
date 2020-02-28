@@ -1,5 +1,6 @@
-% Test Script for Dubins Paths
-clear, clc
+function demo()
+%DEMO() Dubins path visual demonstration
+clc
 
 % Imports
 import('AE5224.dubins.path.LSL');
@@ -21,8 +22,11 @@ paths = {@LSL, @LSR, @RSL, @RSR};
 names = {'LSL', 'LSR', 'RSL', 'RSR'};
 for i_p = 1:4
     try
+        % Find path
         path = paths{i_p}(pa, ha, pb, hb, r);
         cls = class(path);
+        
+        % Plot section regions
         for i_s = 1:3
             fig = figure;
             fig.Name = [cls(end-2:end) ' Section ' int2str(i_s)];
@@ -41,7 +45,6 @@ for i_p = 1:4
             plot(p_sect(2, :), p_sect(1, :), 'rx', 'DisplayName', 'Sect')
             drawnow
         end
-        status = 'Generated';
         fprintf('Generated %s path (dist = %.1f).\n', names{i_p}, path.dist());
     catch
         fprintf('Failed %s path.\n', names{i_p});
@@ -53,3 +56,5 @@ fprintf('\n');
 best_path = get_path(pa, ha, pb, hb, r);
 cls = class(best_path);
 fprintf('Best path: %s\n', cls(end-2:end))
+
+end
