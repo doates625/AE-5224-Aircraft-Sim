@@ -1,7 +1,7 @@
 classdef (Abstract) Path < handle
     %PATH Dubins path
     
-    properties (Access = protected)
+    properties (SetAccess = protected)
         p0;     % Point 0 [x; y]
         p1;     % Point 1 [x; y]
         p2;     % Point 2 [x; y]
@@ -14,21 +14,21 @@ classdef (Abstract) Path < handle
         c23;    % Circle center p2-p3 [x; y]
         s01;    % Turn sign p0-p1 [-1, +1]
         s23;    % Turn sign p2-p3 [-1, +1]
-        r;      % Turn radius
+        rad;    % Turn radius
         d01;    % Distance p0-p1
         d02;    % Distance p0-p2
         d03;    % Distance p0-p3
     end
     
     methods (Access = public)
-        function obj = Path(pa, ha, pb, hb, r, ta, tb)
-            %obj = PATH(pa, ha, pb, hb, r, ta, tb)
+        function obj = Path(pa, ha, pb, hb, rad, ta, tb)
+            %obj = PATH(pa, ha, pb, hb, rad, ta, tb)
             %   Construct Dubins path
             %   - pa = Point A [x; y]
             %   - ha = Heading A [rad]
             %   - pb = Point B [x; y]
             %   - hb = Heading B [rad]
-            %   - r = Turn radius
+            %   - rad = Turn radius
             %   - ta = Turn A ['L', 'R']
             %   - tb = Turn B ['L', 'R']
             
@@ -41,13 +41,13 @@ classdef (Abstract) Path < handle
             obj.h0 = ha;
             obj.p3 = pb;
             obj.h3 = hb;
-            obj.r = r;
+            obj.rad = rad;
             obj.s01 = (ta == 'R') - (ta == 'L');
             obj.s23 = (tb == 'R') - (tb == 'L');
             
             % Path params
-            obj.c01 = circle(obj.p0, obj.h0, obj.r, obj.s01);
-            obj.c23 = circle(obj.p3, obj.h3, obj.r, obj.s23);
+            obj.c01 = circle(obj.p0, obj.h0, obj.rad, obj.s01);
+            obj.c23 = circle(obj.p3, obj.h3, obj.rad, obj.s23);
             vc = obj.c23 - obj.c01;
             [hc, dc] = cart2pol(vc(1), vc(2));
             if ta == tb
@@ -55,15 +55,15 @@ classdef (Abstract) Path < handle
                 d12 = dc;
             else
                 sgn = (ta == 'R') - (ta == 'L');
-                obj.h1 = hc + sgn * asin(2*obj.r / dc);
+                obj.h1 = hc + sgn * asin(2*obj.rad / dc);
                 if ~isreal(obj.h1)
                     error('Invalid Dubins path.');
                 end
-                d12 = 2 * sqrt(0.25*dc^2 - obj.r^2);
+                d12 = 2 * sqrt(0.25*dc^2 - obj.rad^2);
             end
             obj.h2 = obj.h1;
-            d01 = r * h_dif(obj.h0, obj.h1, obj.s01);
-            d23 = r * h_dif(obj.h2, obj.h3, obj.s23);
+            d01 = rad * h_dif(obj.h0, obj.h1, obj.s01);
+            d23 = rad * h_dif(obj.h2, obj.h3, obj.s23);
             obj.d01 = d01;
             obj.d02 = obj.d01 + d12;
             obj.d03 = obj.d02 + d23;
@@ -71,11 +71,12 @@ classdef (Abstract) Path < handle
             obj.p2 = obj.get_12(obj.d02);
         end
         
-        function [p, h] = get(obj, d)
-            %p = GET(obj, d) Get point along path
+        function [p, h, s] = get(obj, d)
+            %[p, h, s] = GET(obj, d) Get point along path
             %   - d = Absolute path distances [d1, ..., dn]
             %   - p = Points on path [x1, ..., xn; y1, ..., yn]
             %   - h = Headings on path [h1, ... hn] [rad]
+            %   - s = Path section [1...3]
             n = length(d);
             p = nan(2, n);
             h = nan(1, n);
@@ -84,10 +85,13 @@ classdef (Abstract) Path < handle
                     continue
                 elseif d(i) <= obj.d01
                     [p(:, i), h(i)] = obj.get_01(d(i));
+                    s = 1;
                 elseif d(i) <= obj.d02
                     [p(:, i), h(i)] = obj.get_12(d(i));
+                    s = 2;
                 elseif d(i) <= obj.d03
                     [p(:, i), h(i)] = obj.get_23(d(i));
+                    s = 3;
                 end
             end
         end
@@ -120,8 +124,8 @@ classdef (Abstract) Path < handle
             xlabel('Y')
             ylabel('X')
             plot3(p(2, :), p(1, :), h, 'b-', 'Linewidth', 2);
-            plot_circ(obj.c01, obj.r, 'k--');
-            plot_circ(obj.c23, obj.r, 'k--');
+            plot_circ(obj.c01, obj.rad, 'k--');
+            plot_circ(obj.c23, obj.rad, 'k--');
             axis equal
             legend('Path', 'Turn', 'Turn');
         end
@@ -137,7 +141,7 @@ classdef (Abstract) Path < handle
             import('AE5224.dubins.util.rotate');
             import('AE5224.dubins.util.h_add');
             d0x = d;
-            a0x = d0x / obj.r;
+            a0x = d0x / obj.rad;
             p = rotate(obj.p0, obj.c01, a0x, obj.s01);
             h = h_add(obj.h0, a0x, obj.s01);
         end
@@ -162,7 +166,7 @@ classdef (Abstract) Path < handle
             import('AE5224.dubins.util.rotate');
             import('AE5224.dubins.util.h_add');
             d2x = d - obj.d02;
-            a2x = d2x / obj.r;
+            a2x = d2x / obj.rad;
             p = rotate(obj.p2, obj.c23, a2x, obj.s23);
             h = h_add(obj.h2, a2x, obj.s23);
         end

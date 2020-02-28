@@ -31,7 +31,7 @@ classdef (Abstract) Controller
         u = update_(obj, x, t)
         %u = UPDATE(obj, x, t)
         %   Update control output with new state
-        %   - x = State [p_e; q_e; v_e; w_b]4
+        %   - x = State [p_e; q_e; v_e; w_b]
         %   - t = Current time [s]
         %   - u = Unsurated control vector
     end
