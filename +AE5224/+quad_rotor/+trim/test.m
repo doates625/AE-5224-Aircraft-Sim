@@ -1,9 +1,11 @@
-function log = test(trim, t_max, del_t)
-%log = TEST(trim, t_max, del_t)
+function log = test(trim, open_loop, ekf_fb, t_max, del_t)
+%log = TEST(trim, open_loop, ekf_fb, t_max, del_t)
 %   Simulate and analyze trim condition
 %   
 %   Inputs:
 %   - trim = Trim conditions [AE5224.trim.Trim]
+%   - open_loop = Open loop control flag [logical]
+%   - ekf_fb = EKF feedback flag [logical]
 %   - t_max = Simulation duration [s, def = 10.0]
 %   - del_t = Timulation timestep [s, def = 0.01]
 %   
@@ -15,14 +17,12 @@ clc
 import('AE5224.quad_rotor.Model');
 import('AE5224.quad_rotor.trim.solve');
 import('AE5224.quad_rotor.Log');
+import('AE5224.quad_rotor.control.Trim');
 import('AE5224.control.OpenLoop');
 import('AE5224.rigid_body.Model.unpack_x');
+import('AE5224.rigid_body.Model.pack_x');
 import('AE5224.sim');
 import('quat.Quat');
-
-% Default args
-if nargin < 1, t_max = 10.0; end
-if nargin < 2, del_t = 0.01; end
 
 % Initial printout
 fprintf('Quadrotor Trim Test\n\n');
@@ -33,7 +33,7 @@ model = Model();
 [x_st, u_st] = solve(model, trim);
 
 % Trim states
-[~, q_e, v_e, w_b] = unpack_x(x_st);
+[p_e, q_e, v_e, w_b] = unpack_x(x_st);
 q_e = Quat(q_e);
 [~, ty, tx] = q_e.euler();
 v_b = q_e.inv().rotate(v_e);
@@ -50,10 +50,21 @@ fprintf('- Prop 2: %.0f [rpm]\n', u_st(2));
 fprintf('- Prop 3: %.0f [rpm]\n', u_st(3));
 fprintf('- Prop 4: %.0f [rpm]\n\n', u_st(4));
 
+% Control design
+if open_loop
+    ctrl = OpenLoop(model, u_st);
+    x_init = x_st;
+else
+    ctrl = Trim(model, trim, del_t);
+    p_e = p_e + 10*(2*rand(3, 1) - 1);
+    q_e = [1; 0; 0; 0];
+    v_e = zeros(3, 1);
+    w_b = zeros(3, 1);
+    x_init = pack_x(p_e, q_e, v_e, w_b);
+end
+
 % Simulate trim
-ctrl = OpenLoop(model, u_st);
 sim_wind = false;
-ekf_fb = false;
-log = sim(model, ctrl, sim_wind, ekf_fb, x_st, t_max, del_t, @Log);
+log = sim(model, ctrl, sim_wind, ekf_fb, x_init, t_max, del_t, @Log);
 
 end

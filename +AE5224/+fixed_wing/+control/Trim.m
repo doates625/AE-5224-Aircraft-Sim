@@ -1,5 +1,5 @@
 classdef Trim < AE5224.control.Controller
-    %TRIM Trim tracking controller
+    %TRIM Fixed-wing trim tracking controller
     
     properties (Access = protected)
         alt_f;  % Altitude func [function_handle]
@@ -44,7 +44,7 @@ classdef Trim < AE5224.control.Controller
         function u = update_(obj, x, t)
             %u = UPDATE(obj, x, t)
             %   Update control output with new state
-            %   - x = State [p_e; q_e; v_e; w_b]4
+            %   - x = State [p_e; q_e; v_e; w_b]
             %   - t = Current time [s]
             %   - u = Unsurated control vector
             alt = obj.alt_f(t);

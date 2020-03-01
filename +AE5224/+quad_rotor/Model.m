@@ -11,6 +11,7 @@ classdef Model < AE5224.Model
         L;      % CM-to-prop distance [m]
         k_F;    % Motor force constant [N/rpm^2]
         k_M;    % Motor torque constant [N*m/rpm^2]
+        mat;    % Force-moment matrix
     end
     
     methods (Access = public)
@@ -33,6 +34,16 @@ classdef Model < AE5224.Model
             obj.L = 0.175;
             obj.k_F = 6.11e-08;
             obj.k_M = 1.50e-09;
+            obj.mat = zeros(4);
+            obj.mat(1, :) = -obj.k_F;
+            obj.mat(2, 2) = +obj.L * obj.k_F;
+            obj.mat(2, 4) = -obj.L * obj.k_F;
+            obj.mat(3, 1) = -obj.L * obj.k_F;
+            obj.mat(3, 3) = +obj.L * obj.k_F;
+            obj.mat(4, 1) = +obj.k_M;
+            obj.mat(4, 2) = -obj.k_M;
+            obj.mat(4, 3) = +obj.k_M;
+            obj.mat(4, 4) = -obj.k_M;
         end
         
         function [F_b, M_b] = forces(obj, x, u, ~)
@@ -55,24 +66,15 @@ classdef Model < AE5224.Model
             
             % Unpack x and u
             [~, q_e, ~, ~] = unpack_x(x);
-            w_p = u(1:4);
+            w_p2 = u.^2;
             
             % Convert input to FMs
-            w_p2 = w_p.^2;
-            F_wp = obj.k_F * w_p2;
-            M_wp = obj.k_M * w_p2;
-            
-            % Net force body-frame
+            FM = obj.mat * w_p2;
+            F_wp_b = [0; 0; FM(1)];
             F_mg_e = [0; 0; obj.m * get_g()];
             F_mg_b = Quat(q_e).inv().rotate(F_mg_e);
-            F_wp_b = [0; 0; -sum(F_wp)];
             F_b = F_mg_b + F_wp_b;
-            
-            % Net moment body-frame
-            M_b = zeros(3, 1);
-            M_b(1) = obj.L * (F_wp(2) - F_wp(4));
-            M_b(2) = obj.L * (F_wp(3) - F_wp(1));
-            M_b(3) = [+1, -1, +1, -1] * M_wp;
+            M_b = FM(2:4);
         end
     end
 end
