@@ -25,7 +25,7 @@ classdef Dubins < AE5224.quad_rotor.control.Controller
     
     methods (Access = protected)
         function u = update_(obj, x, t)
-            %u = UPDATE(obj, x, t)
+            %u = UPDATE_(obj, x, t)
             %   Update control output with new state
             %   - x = State [p_e; q_e; v_e; w_b]
             %   - t = Current time [s]

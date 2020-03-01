@@ -7,7 +7,7 @@ function log = test(trim, open_loop, ekf_fb, t_max, del_t)
 %   - open_loop = Open loop control flag [logical]
 %   - ekf_fb = EKF feedback flag [logical]
 %   - t_max = Simulation duration [s, def = 10.0]
-%   - del_t = Timulation timestep [s, def = 0.01]
+%   - del_t = Simulation timestep [s, def = 0.01]
 %   
 %   Outputs:
 %   - log = Simulation log [AE5224.rigid_body.Log]
