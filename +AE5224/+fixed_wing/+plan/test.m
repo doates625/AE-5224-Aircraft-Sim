@@ -71,7 +71,7 @@ q_e = Quat([0; 0; 1], h_e);
 v_e = q_e.rotate([vel; 0; 0]);
 q_e = q_e.vector();
 w_b = zeros(3, 1);
-x_st = pack_x(p_e, q_e, v_e, w_b);
+x_init = pack_x(p_e, q_e, v_e, w_b);
 
 % Controller
 model = Model();
@@ -81,6 +81,6 @@ ctrl = Dubins(model, path, vel, alt);
 sim_wind = true;
 ekf_fb = true;
 del_t = 0.01;
-log = sim(model, ctrl, sim_wind, ekf_fb, x_st, time, del_t, @Log);
+log = sim(model, ctrl, sim_wind, ekf_fb, x_init, time, del_t, @Log);
 
 end

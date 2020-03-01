@@ -11,12 +11,12 @@ function path2()
 import('AE5224.quad_rotor.plan.test');
 
 % Parameters
-pa = 1000 * [0.50; 0.50];
-ha = deg2rad(0);
-pb = 1000 * [0.75; 0.75];
-hb = deg2rad(90);
+p_a = [0.50; 0.50; -0.10];
+h_a = 0;
+p_b = [0.75; 0.75; -0.10];
+h_b = 90;
 
 % Test path
-test(pa, ha, pb, hb);
+test(p_a, h_a, p_b, h_b);
 
 end
